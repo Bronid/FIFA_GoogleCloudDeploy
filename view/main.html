@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+         body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
+
+        li {
+            display: inline-block;
+            margin: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            padding: 10px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .logout-btn {
+            text-decoration: none;
+            padding: 10px;
+            background-color: #f44336;
+            color: white;
+            border-radius: 5px;
+        }
+    </style>
+    <title>Main Page</title>
+    <style>
+        li {
+            display: inline-block;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Main Page</h1>
+    
+    <ul>
+        <li><a href="matchlist.html">View Table</a></li>
+        <li><a href="addmatch.html">Add New Element</a></li>
+        <li><a href="login.html">Login Page</a></li>
+        <li><a href="register.html">Register Page</a></li>
+        <li><a href="https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/api-docs">Swagger Docs Match API</a></li>
+        <li><a href="https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/api-docs">Swagger Docs User API</a></li>
+
+        <li id="logout-container"></li>
+    </ul>
+
+    <script>
+
+        if (document.cookie) {
+            const logoutContainer = document.getElementById('logout-container');
+            const logoutButton = document.createElement('a');
+            logoutButton.href = '#';
+            logoutButton.className = 'logout-btn';
+            logoutButton.innerText = 'Logout';
+
+            logoutButton.addEventListener('click', function() {
+                document.cookie = `userLogin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+                document.cookie = `userPassword=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+                location.reload();
+                alert('Logged out successfully!');
+            });
+
+            logoutContainer.appendChild(logoutButton);
+        }
+    </script>
+</body>
+</html>
+
