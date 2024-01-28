@@ -91,29 +91,29 @@
             const login = document.getElementById('login').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            const score = 10;
 
             if (password !== confirmPassword) {
                 document.getElementById('result').innerHTML = 'Passwords do not match.';
                 return;
             }
 
-            const response = await fetch('https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/register', {
+            const response = await fetch('http://localhost:8081/users/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ login, password, score }),
+                body: JSON.stringify({ login, password }),
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                document.getElementById('result').innerHTML = 'Registration successful. You can now login.';
+                document.getElementById('result').innerHTML = 'Registration successful. You are now logged in.';
 
-                document.cookie = `userLogin=${result.login}; expires=${new Date(Date.now() + 86400000).toUTCString()}; path=/`;
-                document.cookie = `userPassword=${result.password}; expires=${new Date(Date.now() + 86400000).toUTCString()}; path=/`;
+                // Сохраняем токен в куки
+                document.cookie = `userToken=${result.token}; expires=${new Date(Date.now() + 86400000).toUTCString()}; path=/`;
 
+                // Редирект на другую страницу, например, на главную
                 window.location.href = 'main.html';
             } else {
                 document.getElementById('result').innerHTML = `Registration failed. ${result.message}`;
@@ -122,4 +122,3 @@
     </script>
 </body>
 </html>
-

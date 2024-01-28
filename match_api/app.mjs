@@ -8,6 +8,7 @@ import { dirname } from 'path';
 import fs from 'fs/promises';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import jwt from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,6 +45,8 @@ const swaggerOptions = {
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
+const secretKey = 'your-secret-key'; // Change this to a secure secret key
+
 app.get('/api-docs.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
@@ -51,9 +54,34 @@ app.get('/api-docs.json', (req, res) => {
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.listen(8080, () => {
-  console.log('server is running');
-});
+function isAdmin(req, res, next) {
+  if (req.user && req.user.rank === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access forbidden for non-admin users' });
+  }
+}
+
+function verifyToken(req, res, next) {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(403).json({ message: 'Token not provided' });
+  }
+
+  jwt.verify(token, secretKey, (err, decoded) => {
+    if (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token has expired' });
+      } else {
+        return res.status(401).json({ message: 'Failed to authenticate token' });
+      }
+    }
+
+    req.user = decoded;
+    next();
+  });
+}
 
 /**
  * @swagger
@@ -114,6 +142,8 @@ app.get('/matches/:nameparam', async (req, res) => {
  * /addmatch:
  *   post:
  *     summary: Add a new match
+ *     security:
+ *       - jwt: []
  *     requestBody:
  *       required: true
  *       content:
@@ -127,19 +157,10 @@ app.get('/matches/:nameparam', async (req, res) => {
  *                 type: string
  *               country_guest:
  *                 type: string
- *               country_home_score:
- *                 type: integer
- *               country_guest_score:
- *                 type: integer
- *               user_score:
- *                 type: integer
  *           example:
  *             date: "13-09-2013"
  *             country_home: "Team A"
  *             country_guest: "Team B"
- *             country_home_score: 2
- *             country_guest_score: 1
- *             user_score: 0
  *     responses:
  *       '200':
  *         description: Successful response
@@ -149,16 +170,34 @@ app.get('/matches/:nameparam', async (req, res) => {
  *               date: "13-09-2013"
  *               country_home: "Team A"
  *               country_guest: "Team B"
- *               country_home_score: 2
- *               country_guest_score: 1
- *               user_score: 0
+ *               is_end: false
  */
-app.post('/addmatch', async (req, res) => {
-  let dbo = mongoc.db('FIFA');
-  let result = await dbo.collection('Match').insertOne(req.body);
-  console.log(req.body);
-  res.end(JSON.stringify(req.body));
+app.post('/addmatch', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { date, country_home, country_guest } = req.body;
+
+    const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
+    if (!date.match(dateRegex)) {
+      return res.status(400).json({ error: 'Invalid date format. Use DD-MM-YYYY.' });
+    }
+
+    const newMatch = {
+      date,
+      country_home,
+      country_guest,
+      is_end: false,
+    };
+
+    let dbo = mongoc.db('FIFA');
+    let result = await dbo.collection('Match').insertOne(newMatch);
+    console.log(newMatch);
+    res.json(newMatch);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
 
 /**
  * @swagger
@@ -177,7 +216,7 @@ app.post('/addmatch', async (req, res) => {
  *       '200':
  *         description: Successful response
  */
-app.delete('/matches/:nameparam', async (req, res) => {
+app.delete('/matches/:nameparam', verifyToken, isAdmin, async (req, res) => {
   let dbo = mongoc.db('FIFA');
   let oid = { _id: new ObjectId(req.params.nameparam) };
   let result = await dbo.collection('Match').deleteOne(oid);
@@ -202,6 +241,8 @@ app.delete('/matches/:nameparam', async (req, res) => {
  *         schema:
  *           type: string
  *           example: "65606fc05c0b3725824be3e7"
+ *     security:
+ *       - jwt: []
  *     requestBody:
  *       required: true
  *       content:
@@ -219,15 +260,18 @@ app.delete('/matches/:nameparam', async (req, res) => {
  *                 type: integer
  *               country_guest_score:
  *                 type: integer
- *               user_score:
- *                 type: integer
+ *               is_end:
+ *                 type: boolean
+ *               winner:
+ *                 type: string
  *             example:
  *               date: "13-09-2013"
  *               country_home: "Team A"
  *               country_guest: "Team B"
  *               country_home_score: 2
  *               country_guest_score: 1
- *               user_score: 0
+ *               is_end: true
+ *               winner: "Team A"
  *     responses:
  *       '200':
  *         description: Successful response
@@ -239,29 +283,72 @@ app.delete('/matches/:nameparam', async (req, res) => {
  *               country_guest: "Team B"
  *               country_home_score: 2
  *               country_guest_score: 1
- *               user_score: 0
+ *               is_end: true
+ *               winner: "Team A"
  */
-app.put('/updatematches/:nameparam', async (req, res) => {
-  let dbo = mongoc.db('FIFA');
-  let id = { _id: new ObjectId(req.params.nameparam) };
-  let match = await dbo.collection('Match').findOne(id);
+app.put('/updatematches/:nameparam', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const dbo = mongoc.db('FIFA');
+    const matchId = { _id: new ObjectId(req.params.nameparam) };
+    const match = await dbo.collection('Match').findOne(matchId);
 
-  if (req.body.got_user_score != null){
-    match.user_score += 1
+    if (match.is_end) {
+      return res.json({ error: 'You cannot update this match. This match has ended.' });
+    }
+
+    const isValidDate = /\d{2}-\d{2}-\d{4}/.test(req.body.date);
+    const isIntegerScore = Number.isInteger(req.body.country_home_score) && Number.isInteger(req.body.country_guest_score);
+
+    if (!isValidDate || !isIntegerScore) {
+      return res.status(400).json({ error: 'Invalid date or score format' });
+    }
+
+    const updateDocument = {
+      $set: {
+        date: req.body.date || match.date,
+        country_home: req.body.country_home || match.country_home,
+        country_guest: req.body.country_guest || match.country_guest,
+        country_home_score: req.body.country_home_score || match.country_home_score,
+        country_guest_score: req.body.country_guest_score || match.country_guest_score,
+        is_end: req.body.is_end || match.is_end,
+        winner: req.body.winner || match.winner,
+      },
+    };
+
+    const result = await dbo.collection('Match').updateOne(matchId, updateDocument);
+
+    if (req.body.is_end && req.body.winner) {
+      const userBets = await dbo.collection('Users').find({ 'matches.matchID': matchId._id }).toArray();
+
+      userBets.forEach(async (user) => {
+        const betIndex = user.matches.findIndex((usermatch) => usermatch.matchID.toString() === matchId._id.toString());
+        if (betIndex !== -1 && !user.matches[betIndex].winner) {
+          await dbo.collection('Users').updateOne(
+            { _id: user._id, 'matches.matchID': matchId._id },
+            {
+              $set: {
+                'matches.$.winner': req.body.winner,
+                'matches.$.team_1_score': req.body.country_home_score,
+                'matches.$.team_2_score': req.body.country_guest_score,
+              },
+            }
+          );
+
+          if (user.matches[betIndex].bet_on === req.body.winner) {
+            await dbo.collection('Users').updateOne({ _id: user._id }, { $inc: { money: user.matches[betIndex].amount * 2 } });
+          }
+        }
+      });
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-  
-  let updateDocument = {
-    $set: {
-      date: req.body.date || match.date,
-      country_home: req.body.country_home || match.country_home,
-      country_guest: req.body.country_guest || match.country_guest,
-      country_home_score: req.body.country_home_score || match.country_home_score,
-      country_guest_score: req.body.country_guest_score || match.country_guest_score,
-      user_score: req.body.user_score || match.user_score,
-    },
-  };
-
-  let result = await dbo.collection('Match').updateOne(id, updateDocument);
-  res.json(result);
 });
 
+
+app.listen(8080, () => {
+  console.log('server is running');
+});
