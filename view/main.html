@@ -1,87 +1,350 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-            text-align: center;
-        }
-
-        li {
-            display: inline-block;
-            margin: 10px;
-        }
-
-        a {
-            text-decoration: none;
-            padding: 10px;
-            background-color: #4caf50;
-            color: white;
-            border-radius: 5px;
-        }
-
-        .logout-btn {
-            text-decoration: none;
-            padding: 10px;
-            background-color: #f44336;
-            color: white;
-            border-radius: 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="style/main.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
     <title>Main Page</title>
+
     <style>
-        li {
-            display: inline-block;
-            margin: 10px;
+        .form-check .form-check-input {
+            float: none;
+            margin-left: -1.5em;
+        }
+
+        .big-blue-button-t {
+            cursor: pointer;
+            border: none;
+            padding: 10px 35px;
+            font-size: 23px;
+            background-color: #ffa500;
+            font-weight: bold;
+            color: white;
+            transition: background-color 0.3s ease-in-out;
+            border-radius: 10px;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            /* Initially hide the button */
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 300px;
+            width: 100%;
+            background-color: rgba(255, 165, 0, 0.5);
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(1, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #modalImage {
+            flex: 1;
+            height: 400px;
+            height: auto;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .form-check-input {
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .form-check-input:hover,
+        .form-check-input:checked {
+            background-color: #ffa500;
+            color: white;
+        }
+
+        .form-check-label {
+            cursor: pointer;
+            margin-left: 5px;
         }
     </style>
 </head>
+
 <body>
-    <h1>Main Page</h1>
-    
-    <ul>
-        <li><a href="matchlist.html">View Table</a></li>
-        <li><a href="addmatch.html">Add New Element</a></li>
-        <li><a href="login.html">Login Page</a></li>
-        <li><a href="register.html">Register Page</a></li>
-        <li><a href="https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/api-docs">Swagger Docs Match API</a></li>
-        <li><a href="https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/api-docs">Swagger Docs User API</a></li>
+    <!-- Navbar -->
+    <nav>
+        <a class="logo" href="#">Candy Betting</a>
+        <div class="profile">
+            <img src="images/profile.png" alt="profile">
+            <div class="balance">
+                <span id="balance">100</span>
+                <img src="images/candy.png" alt="Candy">
+            </div>
+        </div>
+    </nav>
 
-        <li id="logout-container"></li>
-    </ul>
+    <div class="main-container">
+        <!-- Match List -->
+        <div class="match-container">
+            <span id="losung">Upcoming Matches</span>
+        </div>
 
+        <!-- Search Form -->
+        <form id="searchForm" onsubmit="submitSearch()">
+            <div class="input-group">
+                <input type="text" id="searchInput" placeholder="Search matches..." class="form-control">
+                <button type="submit" class="blue-button-search">Search</button>
+            </div>
+        </form>
+
+        <!-- Match Cards Carousel -->
+        <ul id="matchList"></ul>
+
+        <!-- Модальное окно -->
+        <div class="modal fade" id="betModal" tabindex="-1" aria-labelledby="betModalLabel" aria-hidden="true"
+            style="background-color: rgba(255, 165, 0, 0.09);">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content" style="background-color: #343a40;">
+                    <div class="modal-body" style="padding: 10%;">
+                        <form class="w-100 me-4">
+                            <h2 class="mb-4 losung">Make your bet:</h2>
+                            <!-- Выбор результата (команда1, команда2, ничья) с использованием чекбокса -->
+                            <div class="mb-4 d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="result" value="team1">
+                                    <label class="form-check-label team-details-modul">Команда 1</label>
+                                </div>
+                                <div class="align-items-center">
+                                    <label class="vs">VS</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="result" value="team2">
+                                    <label class="form-check-label team-details-modul">Команда 2</label>
+                                </div>
+                            </div>
+                            <div class="form-check al">
+                                <input type="checkbox" class="form-check-input" name="result" value="draw">
+                                <label class="form-check-label team-details-modul">Ничья</label>
+                            </div>
+
+
+                            <!-- Выбор суммы ставки с использованием слайдера -->
+                            <div class="mb-4 mt-5">
+                                <label for="betAmount" class="form-label">Amount of your bet:</label>
+                                <input type="range" class="form-range" id="betAmount" min="1" max="100" step="1">
+                            </div>
+
+                            <button type="button" class="btn big-blue-button-t mt-3 mb-5">Bet</button>
+                            <!-- Кнопка для совершения ставки -->
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
     <script>
-
-        if (document.cookie) {
-            const logoutContainer = document.getElementById('logout-container');
-            const logoutButton = document.createElement('a');
-            logoutButton.href = '#';
-            logoutButton.className = 'logout-btn';
-            logoutButton.innerText = 'Logout';
-
-            logoutButton.addEventListener('click', function() {
-                document.cookie = `userLogin=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
-                document.cookie = `userPassword=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
-                location.reload();
-                alert('Logged out successfully!');
-            });
-
-            logoutContainer.appendChild(logoutButton);
+        function submitSearch() {
+            event.preventDefault();
+            const searchInputValue = document.getElementById('searchInput').value.trim();
+            if (searchInputValue !== '') {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('filter', searchInputValue);
+                window.location.href = currentUrl.toString();
+            }
         }
-    </script>
-</body>
-</html>
 
+        function getJSON() {
+            var queryParams = new URLSearchParams(window.location.search);
+            var parameterValue = queryParams.get('filter');
+            console.log('Parameter Value:', parameterValue);
+            var restAdress = 'https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/matches'
+            if (parameterValue !== null) {
+                restAdress += '/' + parameterValue
+            }
+
+            fetch(restAdress, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(response => response.json())
+                .then(json => populateMatchList(json));
+
+        }
+
+        async function giveScore(matchId) {
+            try {
+                const login = getCookie("userLogin");
+                const password = getCookie("userPassword");
+                console.log('Received login:', login);
+                console.log('Received password:', password);
+
+                const response = await fetch('https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/givescore', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ login, password }), // Use login and password from cookies
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await updateMatch(matchId);
+                } else {
+                    console.error('Failed to give score:', result.message);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function updateMatch(matchId) {
+            try {
+                const response = await fetch(`https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/updatematches/${matchId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ got_user_score: true }),
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error('Failed to update match:', response.statusText);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function getCookie(name) {
+            const cookies = Object.fromEntries(
+                document.cookie.split('; ').map(cookie => cookie.split('=')));
+            return cookies[name];
+        }
+
+        async function deleteMatch(matchId) {
+            try {
+                const response = await fetch(`https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/${matchId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    console.error('Failed to delete match');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function populateMatchList(json) {
+            const matchList = document.getElementById('matchList');
+
+            json.forEach(match_json => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const cardHeader = document.createElement('div');
+                cardHeader.className = 'card-body date';
+                cardHeader.textContent = 'Date: ' + match_json.date;
+
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body';
+
+                const matchDetails = document.createElement('div');
+                matchDetails.className = 'match-details';
+
+                const homeTeam = document.createElement('div');
+                homeTeam.className = 'team-details';
+                homeTeam.innerHTML = match_json.country_home;
+
+                const score = document.createElement('div');
+                score.className = 'score';
+                score.innerHTML = '<strong>' + match_json.country_home_score + ' : ' + match_json.country_guest_score + '</strong>';
+
+                const guestTeam = document.createElement('div');
+                guestTeam.className = 'team-details';
+                guestTeam.innerHTML = match_json.country_guest;
+
+                const scoreSection = document.createElement('div');
+                scoreSection.className = 'score-section';
+
+                const giveScoreButton = document.createElement('button');
+                giveScoreButton.className = 'green-button';
+                giveScoreButton.textContent = 'Give Score';
+                giveScoreButton.onclick = function () {
+                    giveScore(match_json._id);
+                };
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'red-button';
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = function () {
+                    deleteMatch(match_json._id);
+                };
+
+                const editLink = document.createElement('a');
+                editLink.className = 'blue-button';
+                editLink.href = 'updatematch.html?filter=' + match_json._id;
+                editLink.textContent = 'Edit';
+
+
+                const bigBlueButton = document.createElement('button');
+                bigBlueButton.className = 'big-blue-button';
+                bigBlueButton.textContent = 'BET';
+                bigBlueButton.setAttribute('data-toggle', 'toggle');
+                bigBlueButton.setAttribute('data-bs-toggle', 'modal');
+                bigBlueButton.setAttribute('data-bs-target', '#betModal');
+
+                // Обработчик изменения состояния Toggle
+                bigBlueButton.addEventListener('change', function () {
+                    if (bigBlueButton.checked) {
+                        // Код, который выполнится при включении Toggle
+                        $('#betModal').modal('show'); // Показать модальное окно
+                    } else {
+                        // Код, который выполнится при выключении Toggle
+                    }
+                });
+
+                matchDetails.appendChild(homeTeam);
+                matchDetails.appendChild(score)
+                matchDetails.appendChild(guestTeam);
+
+
+                cardBody.appendChild(matchDetails);
+                cardBody.appendChild(scoreSection);
+                cardBody.appendChild(bigBlueButton);
+
+                card.appendChild(cardHeader);
+                card.appendChild(cardBody);
+
+                matchList.appendChild(card);
+            });
+        }
+
+
+        window.onload = getJSON();
+    </script>
+
+
+
+
+</body>
+
+</html>
