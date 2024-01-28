@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style/profile.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <title>Profile Page</title>
+    <style>
+        .center {
+            margin: 0 auto;
+        }
+
+        .btn-container {
+            text-align: center;
+        }
+
+        .btn-sm {
+            width: 50%;
+            display: inline-block;
+            margin: 20px;
+        }
+
+        #big {
+            font-size: 30px;
+        }
+
+        .btn-orange,
+        .btn-danger {
+            margin-right: 10px;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+        }
+
+        .btn-orange:hover,
+        .btn-danger:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: scale(1.05);
+        }
+
+        .btn-orange {
+            background-color: #ffa550;
+            transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+        }
+
+        .btn-orange:hover {
+            background-color: #ff670f;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .list-group-item {
+            position: relative;
+            display: block;
+            padding: 1rem 1rem;
+            margin: 3px;
+            color: #fff;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 10px;
+            background-color: rgba(255, 165, 0, 0.6);
+            border: 1px solid rgba(0, 0, 0, .125);
+        }
+
+        .list-group-item:hover {
+            transform: scale(1.02);
+            background-color: rgba(255, 165, 0, 1);
+        }
+
+        .card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            word-wrap: break-word;
+            background-color: rgb(52, 58, 64, 0.4);
+            background-clip: border-box;
+            border: 1px solid rgba(0, 0, 0, .125);
+            border-radius: .25rem;
+        }
+
+        .list-group-item:first-child {
+            border-radius: 10px;
+        }
+
+        .list-group-item:last-child {
+            border-radius: 10px;
+        }
+
+        .add-new-btn {
+            margin-left: auto;
+        }
+
+        .d-flex .justify-content-between .align-items-center {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav>
+        <a class="logo" href="main.html">Candy Betting</a>
+        <div class="profile">
+            <a href="profile.html"><img src="images/profile.png" alt="profile"></a>
+            <div class="balance">
+                <span id="balance">100</span>
+                <img src="images/candy.png" alt="Candy">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile and Bet Form using Bootstrap Grid -->
+    <div class="container" style="margin-top: 100px;">
+        <div class="row">
+            <!-- User List Container -->
+            <div class="col-md-6">
+                <h2 class="losung">User List</h2>
+                <div class="list-history">
+                    <div class="card bg-custom">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <ul id="userList" class="list-group list-group-flush">
+                                <!-- Each user as a list item within the card -->
+                            </ul>
+                            <button type="button" class="btn-orange btn-sm add-new-btn" onclick="editProfile()">ADD NEW</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bet History Container -->
+            <div class="col-md-6">
+                <h2 class="losung">Match list</h2>
+                <div class="list-history">
+                    <div class="card bg-custom">
+                        <div class="card-body d-flex justify-content-between align-items-center">
+                            <ul id="betList" class="list-group list-group-flush">
+                                <!-- Each bet as a list item within the card -->
+                            </ul>
+                            <button type="button" class="btn-orange btn-sm add-new-btn" onclick="editProfile()">ADD NEW</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample JavaScript functions for reset password and edit profile
+        function resetPassword() {
+            // Implement reset password functionality
+            console.log("Resetting password...");
+        }
+
+        function editProfile() {
+            // Implement edit profile functionality
+            console.log("Editing profile...");
+        }
+
+        // Fetch and display user information and bet history using AJAX or fetch API
+        // ...
+
+        // Sample data for bet history
+        const betHistory = [
+            { match: "Match 1", amount: 50, result: "Win" },
+            { match: "Match 2", amount: 25, result: "Loss" },
+            { match: "Match 1", amount: 50, result: "Win" },
+            { match: "Match 2", amount: 25, result: "Loss" },
+            { match: "Match 1", amount: 50, result: "Win" },
+            { match: "Match 2", amount: 25, result: "Loss" },
+            { match: "Match 1", amount: 50, result: "Win" },
+            // Add more bet history entries as needed
+        ];
+
+        const betList = document.getElementById("betList");
+
+        betHistory.forEach(bet => {
+            const card = document.createElement("li");
+            card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+
+            const cardContent = document.createElement("div");
+            cardContent.textContent = `${bet.match} - Bet Amount: ${bet.amount}, Result: ${bet.result}`;
+
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("btn", "btn-danger");
+            deleteButton.textContent = "Delete";
+
+            const endButton = document.createElement("button");
+            endButton.classList.add("btn", "btn-orange");
+            endButton.textContent = "Edit";
+
+            card.appendChild(cardContent);
+            card.appendChild(endButton);
+            card.appendChild(deleteButton);
+
+            betList.appendChild(card);
+        });
+
+        // Sample data for user list
+        const userList = [
+            { username: "User1", email: "user1@example.com", role: "Admin" },
+            { username: "User2", email: "user2@example.com", role: "User" },
+            { username: "User3", email: "user3@example.com", role: "Moderator" },
+            { username: "User1", email: "user1@example.com", role: "Admin" },
+            { username: "User2", email: "user2@example.com", role: "User" },
+            { username: "User3", email: "user3@example.com", role: "Moderator" },
+
+            // Add more user entries as needed
+        ];
+
+        const userListContainer = document.getElementById("userList");
+
+        userList.forEach(user => {
+            const card = document.createElement("li");
+            card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+
+            const cardContent = document.createElement("div");
+            cardContent.textContent = `Username: ${user.username}, Email: ${user.email}, Role: ${user.role}`;
+
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("btn", "btn-danger");
+            deleteButton.textContent = "Delete";
+            deleteButton.style.marginLeft = "auto"; // Изменяем стиль напрямую
+
+            const endButton = document.createElement("button");
+            endButton.classList.add("btn", "btn-orange");
+            endButton.textContent = "Edit";
+            endButton.style.marginLeft = "auto"; // Изменяем стиль напрямую
+
+            card.appendChild(cardContent);
+            card.appendChild(endButton);
+            card.appendChild(deleteButton);
+
+            userListContainer.appendChild(card);
+        });
+    </script>
+</body>
+
+</html>
