@@ -8,6 +8,8 @@ import { dirname } from 'path';
 import fs from 'fs/promises';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,14 +21,14 @@ app.use(express.static(path.join(__dirname, 'view')));
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   next();
 });
 
-let mongoLogin = "cloudp731"
-let mongoPassword = "y9XhDjrbE9YMTvHr"
+let mongoLogin = "cloudp731";
+let mongoPassword = "y9XhDjrbE9YMTvHr";
 
-let mongoURL = `mongodb+srv://${mongoLogin}:${mongoPassword}@fifa.mfucycd.mongodb.net/?retryWrites=true&w=majority`
+let mongoURL = `mongodb+srv://${mongoLogin}:${mongoPassword}@fifa.mfucycd.mongodb.net/?retryWrites=true&w=majority`;
 
 let mongoc = new MongoClient(mongoURL);
 
@@ -38,6 +40,13 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'API for managing user data',
     },
+    securityDefinitions: {
+      jwt: {
+        type: 'apiKey',
+        name: 'Authorization',
+        in: 'header',
+      },
+    },
   },
   apis: [__filename],
 };
@@ -46,9 +55,51 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.listen(8081, () => {
-  console.log('Server is running');
-});
+const secretKey = 'your-secret-key'; // Change this to a secure secret key
+
+function generateToken(user) {
+  return jwt.sign(user, secretKey, { expiresIn: '1h' }); // Token expires in 1 hour
+}
+
+function hasPermissionToInvoke(req, res, next) {
+  const requestedUser = req.query.login; 
+  
+  if (req.user.login === requestedUser || req.user.rank === 'admin') {
+    next();
+  } else {
+    return res.status(403).json({ message: 'Access forbidden for this user' });
+  }
+}
+
+function verifyToken(req, res, next) {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(403).json({ message: 'Token not provided' });
+  }
+
+  jwt.verify(token, secretKey, (err, decoded) => {
+    if (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Token has expired' });
+      } else {
+        return res.status(401).json({ message: 'Failed to authenticate token' });
+      }
+    }
+
+    req.user = decoded;
+    next();
+  });
+}
+
+
+function isAdmin(req, res, next) {
+  if (req.user && req.user.rank === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Access forbidden for non-admin users' });
+  }
+}
 
 /**
  * @swagger
@@ -64,43 +115,72 @@ app.listen(8081, () => {
  *             properties:
  *               login:
  *                 type: string
+ *                 minLength: 6
  *               password:
  *                 type: string
- *               score:
- *                 type: integer
- *           example:
- *             login: "user123"
- *             password: "password123"
- *             score: 10
+ *                 minLength: 6
  *     responses:
  *       '200':
- *         description: Successful response
+ *         description: Successful registration
  *         content:
  *           application/json:
  *             example:
- *               _id: "5f4a5ea6bc9f1729d8d21937"
- *               login: "user123"
- *               password: "password123"
- *               score: 10
+ *               _id: "1234567890"
+ *               login: "example_user"
+ *               rank: "user"
+ *               money: 0
+ *               matches: []
+ *       '400':
+ *         description: Bad request, invalid input
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Login should have at least 5 characters"
+ *       '500':
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "Internal server error"
  */
 app.post('/users/register', async (req, res) => {
-  const dbo = mongoc.db('FIFA');
+  const MIN_LOGIN_LENGTH = 6;
+  const MIN_PASSWORD_LENGTH = 6;
+  const { login, password } = req.body;
+  const rank = "user";
+  const money = 0;
+  const matches = [];
 
-  const existingUser = await dbo.collection('Users').findOne({ login: req.body.login });
-  if (existingUser) {
-    res.status(400).json({ message: 'User with this login already exists' });
-    return;
+  if (login.length < MIN_LOGIN_LENGTH) {
+    return res.status(400).json({ message: `Login should have at least ${MIN_LOGIN_LENGTH} characters` });
   }
 
-  const result = await dbo.collection('Users').insertOne(req.body);
-});
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return res.status(400).json({ message: `Password should have at least ${MIN_PASSWORD_LENGTH} characters` });
+  }
 
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  try {
+    const dbo = mongoc.db('FIFA');
+    const existingUser = await dbo.collection('Users').findOne({ login });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this login already exists' });
+    }
+
+    const result = await dbo.collection('Users').insertOne({ login, password: hashedPassword, rank, money, matches });
+    res.json({ _id: result.insertedId, login, rank, money, matches });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 /**
  * @swagger
  * /users/login:
  *   post:
- *     summary: Login user
+ *     summary: Log in a user
  *     requestBody:
  *       required: true
  *       content:
@@ -112,37 +192,127 @@ app.post('/users/register', async (req, res) => {
  *                 type: string
  *               password:
  *                 type: string
- *           example:
- *             login: "user123"
- *             password: "password123"
+ *     responses:
+ *       '200':
+ *         description: Successful login
+ *         content:
+ *           application/json:
+ *             example:
+ *               user:
+ *                 _id: "1234567890"
+ *                 login: "example_user"
+ *                 rank: "user"
+ *                 money: 0
+ *                 matches: []
+ *               token: "your_generated_token"
+ *       '401':
+ *         description: Invalid login or password
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Invalid login or password"
+ *       '500':
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "Internal server error"
+ */
+app.post('/users/login', async (req, res) => {
+  const { login, password } = req.body;
+
+  try {
+    const dbo = mongoc.db('FIFA');
+    const user = await dbo.collection('Users').findOne({ login });
+
+    if (user && await bcrypt.compare(password, user.password)) {
+      const token = generateToken({ login: user.login, rank: user.rank });
+      res.json({ user, token });
+    } else {
+      res.status(401).json({ message: 'Invalid login or password' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /users/getuser:
+ *   get:
+ *     summary: Get user information
+ *     security:
+ *       - jwt: []
+ *     parameters:
+ *       - in: query
+ *         name: login
+ *         required: true
+ *         description: The login of the user to retrieve
+ *         schema:
+ *           type: string
  *     responses:
  *       '200':
  *         description: Successful response
  *         content:
  *           application/json:
  *             example:
- *               _id: "5f4a5ea6bc9f1729d8d21937"
- *               login: "user123"
- *               password: "password123"
- *               score: 10
+ *               _id: "1234567890"
+ *               login: "example_user"
+ *               rank: "user"
+ *               money: 0
+ *               matches: []
+ *       '403':
+ *         description: Access forbidden
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Access forbidden for this user"
  *       '401':
- *         description: Unauthorized
+ *         description: Token validation error
+ *         content:
+ *           application/json:
+ *             examples:
+ *               TokenExpiredError:
+ *                 value:
+ *                   message: "Token has expired"
+ *               TokenValidationError:
+ *                 value:
+ *                   message: "Failed to authenticate token"
+ *       '500':
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: "Internal server error"
  */
-app.post('/users/login', async (req, res) => {
-  const dbo = mongoc.db('FIFA');
-  const user = await dbo.collection('Users').findOne({ login: req.body.login, password: req.body.password });
-  if (user) {
+app.get('/users/getuser', verifyToken, hasPermissionToInvoke, async (req, res) => {
+  const { login } = req.query
+  console.log({login});
+
+  try {
+    const dbo = mongoc.db('FIFA');
+    const user = await dbo.collection('Users').findOne({ login });
     res.json(user);
-  } else {
-    res.status(401).json({ message: 'Invalid login or password' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 /**
  * @swagger
- * /users/givescore:
- *   post:
- *     summary: Give score to a user
+ * /users/updateuser/{login}:
+ *   put:
+ *     summary: Update user information
+ *     parameters:
+ *       - in: path
+ *         name: login
+ *         required: true
+ *         description: Login of the user to be updated
+ *         schema:
+ *           type: string
+ *           example: "john_doe"
+ *     security:
+ *       - jwt: []
  *     requestBody:
  *       required: true
  *       content:
@@ -150,44 +320,263 @@ app.post('/users/login', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
- *               username:
+ *               money:
+ *                 type: integer
+ *               rank:
  *                 type: string
  *               password:
  *                 type: string
- *           example:
- *             username: "user123"
- *             password: "password123"
+ *             example:
+ *               money: 100
+ *               rank: "admin"
+ *               password: "newpassword"
  *     responses:
  *       '200':
  *         description: Successful response
  *         content:
  *           application/json:
  *             example:
- *               success: true
- *               message: "Score given successfully"
- *       '400':
- *         description: Bad request
+ *               status: "OK"
+ *       '403':
+ *         description: Access forbidden for this user
+ *       '401':
+ *         description: Token has expired or failed to authenticate token
+ *       '500':
+ *         description: Internal server error
  */
-app.post('/users/givescore', async (req, res) => {
+app.put('/users/updateuser/:login', verifyToken, hasPermissionToInvoke, async (req, res) => {
+  const { login } = req.params;
+  const { money, rank, password } = req.body;
+
+  const updatedFields = {};
+  
+  if (money !== undefined) {
+    updatedFields.money = money;
+  }
+
+  if (rank !== undefined) {
+    updatedFields.rank = rank;
+  }
+
+  if (password !== undefined) {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    updatedFields.password = hashedPassword;
+  }
+
+  try {
+    const dbo = mongoc.db('FIFA');
+    const updatedUser = await dbo.collection('Users').findOneAndUpdate(
+      { login },
+      { $set: updatedFields },
+      { returnDocument: 'after' }
+    );
+
+    res.status(200).json({ status: "OK" });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+/**
+ * @swagger
+ * /users/getallusers:
+ *   get:
+ *     summary: Get all users
+ *     security:
+ *       - jwt: []
+ *     responses:
+ *       '200':
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             example:
+ *               - _id: "609c6d407519d63908d5ef35"
+ *                 login: "user1"
+ *                 rank: "user"
+ *                 money: 100
+ *                 matches: []
+ *               - _id: "609c6d407519d63908d5ef36"
+ *                 login: "admin1"
+ *                 rank: "admin"
+ *                 money: 500
+ *                 matches:
+ *                   - matchID: "609c6d407519d63908d5ef37"
+ *                     bet_on: "Team A"
+ *                     amount: 50
+ *       '401':
+ *         description: Token has expired or failed to authenticate token
+ *       '403':
+ *         description: Access forbidden for non-admin users
+ *       '500':
+ *         description: Internal server error
+ */
+app.get('/users/getallusers', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const dbo = mongoc.db('FIFA');
+    const users = await dbo.collection('Users').find({}).toArray();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /users/deleteuser/{login}:
+ *   delete:
+ *     summary: Delete user by login
+ *     parameters:
+ *       - in: path
+ *         name: login
+ *         required: true
+ *         description: Login of the user to be deleted
+ *         schema:
+ *           type: string
+ *           example: "user1"
+ *     security:
+ *       - jwt: []
+ *     responses:
+ *       '200':
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "User deleted successfully"
+ *       '401':
+ *         description: Token has expired or failed to authenticate token
+ *       '403':
+ *         description: Access forbidden for this user
+ *       '404':
+ *         description: User not found
+ *       '500':
+ *         description: Internal server error
+ */
+app.delete('/users/deleteuser/:login', verifyToken, hasPermissionToInvoke, async (req, res) => {
+  const { login } = req.params;
+
+  try {
+    const dbo = mongoc.db('FIFA');
+    const userToDelete = await dbo.collection('Users').findOne({ login });
+
+    if (!userToDelete) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await dbo.collection('Users').deleteOne({ login });
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * @swagger
+ * /users/dobet/{matchID}:
+ *   post:
+ *     summary: Place a bet on a match
+ *     parameters:
+ *       - in: path
+ *         name: matchID
+ *         required: true
+ *         description: ID of the match to place a bet on
+ *         schema:
+ *           type: string
+ *           example: "65606fc05c0b3725824be3e7"
+ *       - in: header
+ *         name: Authorization
+ *         required: true
+ *         description: JWT token obtained during login
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               bet_on:
+ *                 type: string
+ *               amount:
+ *                 type: integer
+ *             example:
+ *               bet_on: "Team A"
+ *               amount: 100
+ *     responses:
+ *       '200':
+ *         description: Bet placed successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: 'Bet placed successfully'
+ *       '400':
+ *         description: Bad request, e.g., invalid match or match not available for betting, insufficient funds, or amount not an integer
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'Invalid match or match is not available for betting'
+ *               error: 'Insufficient funds to place the bet'
+ *               error: 'Amount must be an integer'
+ *       '500':
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'Failed to place bet'
+ */
+app.post('/users/dobet/:matchID', verifyToken, async (req, res) => {
+  const { login } = req.user;
+  const matchID = req.params.matchID;
+  const { bet_on, amount } = req.body;
+
+  if (!Number.isInteger(amount)) {
+    return res.status(400).json({ error: 'Amount must be an integer' });
+  }
+
+  try {
     const dbo = mongoc.db('FIFA');
   
-    const user = await dbo.collection('Users').findOne({ login: req.body.login, password: req.body.password });
+    const match = await dbo.collection('Match').findOne({ _id: new ObjectId(matchID) });
+    console.log(match);
+
+    if (!match || match.is_end === true) {
+      return res.status(400).json({ error: 'Invalid match or match is not available for betting' });
+    }
+    const user = await dbo.collection('Users').findOne({ login });
 
     if (!user) {
-      res.status(400).json({ success: false, message: 'Invalid username or password' });
-      return;
-    }
-  
-    if (user.score <= 0) {
-      res.status(400).json({ success: false, message: 'User has insufficient score' });
-      return;
+      return res.status(400).json({ error: 'User not found' });
     }
 
-    const result = await Promise.all([
-      dbo.collection('Users').updateOne({ login: req.body.login, password: req.body.password }, { $inc: { score: -1 } }),
-    ]);
-  
-    res.json({ success: true, message: 'Score given successfully' });
-  });
+    const updatedMoney = user.money - amount;
+    console.log(updatedMoney);
 
-  
+    if (updatedMoney < 0) {
+      return res.status(400).json({ error: 'Insufficient funds to place the bet' });
+    }
+
+    await dbo.collection('Users').updateOne({ login }, { $set: { money: updatedMoney } });
+
+    const userBet = {
+      matchID: new ObjectId(matchID),
+      bet_on,
+      amount,
+      team_1: match.country_home,
+      team_2: match.country_guest,
+      date: match.date,
+    };
+
+    await dbo.collection('Users').updateOne({ login }, { $push: { matches: userBet } });
+
+    res.json({ message: 'Bet placed successfully' });
+  } catch (error) {
+    console.error('Error placing bet:', error);
+    res.status(500).json({ error: 'Failed to place bet' });
+  }
+});
+
+
+app.listen(8081, () => {
+  console.log('Server is running');
+});
