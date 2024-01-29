@@ -231,7 +231,7 @@
                 <!-- Dodaj etykiety dla pól do wprowadzania nowego użytkownika -->
                 <label for="newUsername" class="form-label">New login:</label>
                 <input type="text" class="form-control" id="newUsername">
-                <label for="newPassword" class="form-label">New hasło:</label>
+                <label for="newPassword" class="form-label">New password:</label>
                 <input type="password" class="form-control" id="newPassword">
                 <label for="confirmPassword" class="form-label">Confirm password:</label>
                 <input type="password" class="form-control" id="confirmPassword">
@@ -295,20 +295,26 @@
     <div class="modal fade" id="addMatchModal" tabindex="-1" aria-labelledby="addMatchModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header" >
-                    <h5 class="modal-title" id="addMatchModalLabel">Add a new match</h5>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Add new match</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <!-- Form to enter details of a new match -->
-                    <div class="mb-3" style="color: black; >
-                        <label for="matchDetails" class="form-label">Match details:</label>
-                        <input type="text" class="form-control" id="matchDetails">
+                <div class="modal-body" id="editModalBody" >
+                    <div class="mb-3" style="color: black;>
+                        <label for="editUsername" class="form-label">Match:</label>
+                        <input type="text" class="form-control" id="editUsername">
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-orange" onclick="saveNewMatch()">Add match</button>
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                
+                    <div class="mb-3"style="color: black;>
+                        <label for="editPassword" class="form-label">Bet Amount:</label>
+                        <input type="password" class="form-control" id="editPassword">
+                    </div>
+                
+                    <div class="mb-3"style="color: black;>
+                        <label for="editGroup" class="form-label">Result:</label>
+                        <input type="text" class="form-control" id="editGroup">
+                    </div>
+                
                 </div>
             </div>
         </div>
