@@ -297,6 +297,7 @@
             const resultElement = document.getElementById('result');
 
             if (response.ok) {
+                document.cookie = `userLogin=${result.user.login}; expires=${new Date(Date.now() + 86400000).toUTCString()}; path=/`;
                 document.cookie = `userToken=${result.token}; expires=${new Date(Date.now() + 86400000).toUTCString()}; path=/`;
 
                 redirectToMainPage(result.token);

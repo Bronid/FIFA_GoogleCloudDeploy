@@ -215,8 +215,9 @@
     }
 
         async function getCurrentUser() {
-        const restAddress = "http://localhost:8081/users/getcurrentuser";
-        const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+            const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
+            const restAddress = "http://localhost:8081/users/getuser/" + userLogin;
+            const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
 
         try {
             const response = await fetch(restAddress, {
