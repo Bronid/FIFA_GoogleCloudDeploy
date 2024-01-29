@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="style/profile.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"
+        integrity="sha384-o7nNlvdljzP4joXXb51F0u68tCqVaYuwA+eTPIlXtkWOepv8+VqUJgKFFxwEAqj"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
@@ -108,27 +111,64 @@
         .add-new-btn {
             margin-left: auto;
         }
+        .add-new-btn-edit {
+            margin-left: unset;
+        }
 
         .d-flex .justify-content-between .align-items-center {
             width: 100%;
         }
+        #editModal {
+        color: #fff;
+    }
+
+    #editModal .modal-content {
+        background-color: #fff; 
+        border-radius: 10px;
+    }
+
+    #editModal .modal-header {
+        background-color: rgb(52 58 64); 
+        color: #fff;
+    }
+
+    #editModal .modal-title {
+        font-weight: bold;
+    }
+
+    #editModal .modal-body {
+        padding: 20px;
+    }
+
+    #editModal .modal-footer {
+        border-top: none;
+        padding: 10px 20px;
+    }
+
+    #editModal .btn-primary {
+        background-color: #ffa550; 
+        color: #fff;
+    }
+
+    #editModal .btn-secondary {
+        background-color: #6c757d; 
+        color: #fff;
+    }
+
+    #editModal .btn-danger {
+        background-color: #dc3545; 
+        color: #fff;
+    }
+
+    #editModal .btn-primary:hover,
+    #editModal .btn-secondary:hover,
+    #editModal .btn-danger:hover {
+        filter: brightness(90%);
+    }
     </style>
 </head>
 
 <body>
-    <!-- Navbar -->
-    <nav>
-        <a class="logo" href="main.html">Candy Betting</a>
-        <div class="profile">
-            <a href="profile.html"><img src="images/profile.png" alt="profile"></a>
-            <div class="balance">
-                <span id="balance">100</span>
-                <img src="images/candy.png" alt="Candy">
-            </div>
-        </div>
-    </nav>
-
-    <!-- Profile and Bet Form using Bootstrap Grid -->
     <div class="container" style="margin-top: 100px;">
         <div class="row">
             <!-- User List Container -->
@@ -140,12 +180,15 @@
                             <ul id="userList" class="list-group list-group-flush">
                                 <!-- Each user as a list item within the card -->
                             </ul>
-                            <button type="button" class="btn-orange btn-sm add-new-btn" onclick="editProfile()">ADD NEW</button>
                         </div>
                     </div>
                 </div>
+                <!-- Add New User Button -->
+                <div class="btn-container">
+                    <button type="button" class="btn-orange btn-sm add-new-btn" onclick="addNewUser()">ADD NEW USER</button>
+                </div>
             </div>
-
+    
             <!-- Bet History Container -->
             <div class="col-md-6">
                 <h2 class="losung">Match list</h2>
@@ -155,15 +198,316 @@
                             <ul id="betList" class="list-group list-group-flush">
                                 <!-- Each bet as a list item within the card -->
                             </ul>
-                            <button type="button" class="btn-orange btn-sm add-new-btn" onclick="editProfile()">ADD NEW</button>
                         </div>
                     </div>
+                </div>
+                <!-- Add New Match Button -->
+                <div class="btn-container">
+                    <button type="button" class="btn-orange btn-sm add-new-btn" onclick="addMatch()">ADD NEW MATCH</button>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Navbar -->
+    <nav>
+        <a class="logo" href="main.html">Candy Betting</a>
+        <div class="profile">
+            <a href="profile.html"><img src="images/profile.png" alt="profile"></a>
+            <div class="balance">
+                <span id="balance">100</span>
+                <img src="images/candy.png" alt="Candy">
+            </div>
+        </div>
+    </nav>
+<!-- Add Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalLabel">Add new user</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="color: black;>
+                <!-- Dodaj etykiety dla pól do wprowadzania nowego użytkownika -->
+                <label for="newUsername" class="form-label">New login:</label>
+                <input type="text" class="form-control" id="newUsername">
+                <label for="newPassword" class="form-label">New hasło:</label>
+                <input type="password" class="form-control" id="newPassword">
+                <label for="confirmPassword" class="form-label">Confirm password:</label>
+                <input type="password" class="form-control" id="confirmPassword">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-orange add-new-btn" onclick="saveNewUser()">Add user</button>
+                <button type="button" class="btn btn-danger add-new-btn" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit user</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="editModalBody" >
+                <div class="mb-3" style="color: black;>
+                    <label for="editUsername" class="form-label">Login:</label>
+                    <input type="text" class="form-control" id="editUsername">
+                </div>
+            
+                <div class="mb-3"style="color: black;>
+                    <label for="editPassword" class="form-label">Password:</label>
+                    <input type="password" class="form-control" id="editPassword">
+                </div>
+            
+                <div class="mb-3"style="color: black;>
+                    <label for="editGroup" class="form-label">Group:</label>
+                    <input type="text" class="form-control" id="editGroup">
+                </div>
+            
+                <div class="mb-3"style="color: black;>
+                    <label for="editBalance" class="form-label">Balance:</label>
+                    <input type="number" class="form-control" id="editBalance">
+                </div>
+            </div>
+            
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-orange add-new-btn-edit" onclick="saveChanges()">Save</button>
+                <button type="button" class="btn btn-danger add-new-btn-edit" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Your form elements for deleting user go here -->
+        </div>
+    </div>
+</div>
+      
+           <!-- Modal adding a match -->
+    <div class="modal fade" id="addMatchModal" tabindex="-1" aria-labelledby="addMatchModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" >
+                    <h5 class="modal-title" id="addMatchModalLabel">Add a new match</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Form to enter details of a new match -->
+                    <div class="mb-3" style="color: black; >
+                        <label for="matchDetails" class="form-label">Match details:</label>
+                        <input type="text" class="form-control" id="matchDetails">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-orange" onclick="saveNewMatch()">Add match</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+    </div>
+    
 
     <script>
+        function addMatch() {
+            // Open the modal for adding a match
+            const addMatchModal = new bootstrap.Modal(document.getElementById("addMatchModal"));
+            addMatchModal.show();
+        }
+        function saveNewMatch() {
+            // Get data from the form
+            const matchDetailsInput = document.getElementById("matchDetails");
+            const matchDetails = matchDetailsInput.value;
+
+            // Close the modal after adding a match
+            const addMatchModal = new bootstrap.Modal(document.getElementById("addMatchModal"));
+            addMatchModal.hide();
+
+            if (matchDetails) {
+                // Add a new match to the list
+                const betList = document.getElementById("betList");
+                const card = document.createElement("li");
+                card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+
+                const cardContent = document.createElement("div");
+                cardContent.textContent = matchDetails;
+
+                const deleteButton = document.createElement("button");
+                deleteButton.classList.add("btn", "btn-danger");
+                deleteButton.textContent = "Delete";
+                deleteButton.onclick = () => confirmDelete(matchDetails);
+
+                const endButton = document.createElement("button");
+                endButton.classList.add("btn", "btn-orange");
+                endButton.textContent = "Edit";
+                endButton.onclick = () => editMatch(matchDetails);
+
+                card.appendChild(cardContent);
+                card.appendChild(endButton);
+                card.appendChild(deleteButton);
+
+                betList.appendChild(card);
+
+                // Here you can add code to send an AJAX request to the server or other appropriate action
+            }
+        }
+
+    function editMatch(match) {
+        const newDetails = prompt(`Edit details for the match ${match}:`, match);
+
+        if (newDetails !== null) {
+            //Edit match details
+            console.log(`Editing match ${match}: ${newDetails}`);
+
+            // Here you can add code to send an AJAX request to the server or other appropriate action
+        }
+    }
+
+    function deleteMatch(match) {
+        // Confirm that the user really wants to delete the match
+        const confirmDelete = confirm(`Are you sure you want to delete the match: ${match}?`);
+
+        if (confirmDelete) {
+            // Call the function responsible for removing the match
+            console.log(`Deleting match: ${match}`);
+           // Here add code to send an AJAX request to the server or other appropriate action
+        }
+    }
+
+    function editUser(username) {
+        const newPassword = prompt(`Edit the password for the user ${username}:`);
+        if (newPassword !== null) {
+            openEditModal(username, newPassword);
+        }
+    }
+
+    function addNewUser() {
+        openAddModal();
+    }
+
+    function openEditModal(username, password, group, balance) {
+        const modalBody = document.getElementById("editModalBody");
+        const usernameInput = document.getElementById("editUsername");
+        const passwordInput = document.getElementById("editPassword");
+        const groupInput = document.getElementById("editGroup");
+        const balanceInput = document.getElementById("editBalance");
+
+        usernameInput.value = username;
+        passwordInput.value = password;
+        groupInput.value = group;
+        balanceInput.value = balance;
+
+        const editModal = new bootstrap.Modal(document.getElementById("editModal"));
+        editModal.show();
+    }
+
+    function openAddModal() {
+        const addModal = new bootstrap.Modal(document.getElementById("addModal"));
+        const newUsernameInput = document.getElementById("newUsername");
+        const newPasswordInput = document.getElementById("newPassword");
+        const confirmPasswordInput = document.getElementById("confirmPassword");
+
+        newUsernameInput.value = "";
+        newPasswordInput.value = "";
+        confirmPasswordInput.value = "";
+
+        addModal.show();
+    }
+
+    function saveNewUser() {
+        const newUsernameInput = document.getElementById("newUsername");
+        const newPasswordInput = document.getElementById("newPassword");
+        const confirmPasswordInput = document.getElementById("confirmPassword");
+
+        const newUsername = newUsernameInput.value;
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+
+        if (newPassword === confirmPassword) {
+            // Implement add new user functionality
+            console.log(`Adding new user: ${newUsername}, ${newPassword}`);
+           // Add code here for adding a new user, e.g. by sending an AJAX request to the server
+
+            const addModal = new bootstrap.Modal(document.getElementById("addModal"));
+           addModal.hide();
+        } else {
+            alert("The passwords do not match. Try again.");
+        }
+    }
+
+    function saveChanges() {
+        const usernameInput = document.getElementById("editUsername");
+        const passwordInput = document.getElementById("editPassword");
+        const groupInput = document.getElementById("editGroup");
+        const balanceInput = document.getElementById("editBalance");
+
+        const editedUsername = usernameInput.value;
+        const editedPassword = passwordInput.value;
+        const editedGroup = groupInput.value;
+        const editedBalance = balanceInput.value;
+
+        // Implement a function for saving changes, e.g. by sending an AJAX request to the server
+        console.log(`Saving changes for user ${editedUsername}: Password - ${editedPassword}, Group - ${editedGroup}, Balance - ${editedBalance}`);
+
+        // Close the modal after saving changes
+        const editModal = new bootstrap.Modal(document.getElementById("editModal"));
+        editModal.hide();
+    }
+
+        function confirmDelete(username) {
+        const confirmDelete = confirm(`Are you sure you want to delete the user? ${username}?`);
+        if (confirmDelete) {
+            // Implement delete functionality
+            console.log(`Deleting user: ${username}`);
+            // Tu dodaj kod do usuwania użytkownika, np. wysyłając zapytanie AJAX do serwera
+        }
+    }
+        function showAddUserForm() {
+            // Clear the form
+            clearForm();
+
+            // Set the modal title
+            document.getElementById("formTitle").textContent = "Add User";
+
+            // Show the Add User Modal
+            $('#addUserModal').modal('show');
+        }
+
+        function showEditUserForm(user) {
+            // Clear the form
+            clearForm();
+
+            // Populate form fields with existing user details
+            document.getElementById("itemName").value = user.username;
+            document.getElementById("itemDetails").value = user.email;
+            document.getElementById("itemResult").value = user.role;
+
+            // Set the modal title
+            document.getElementById("formTitle").textContent = "Edit User";
+
+            // Show the Edit User Modal
+            $('#editUserModal').modal('show');
+        }
+
+        function showDeleteUserForm(username) {
+            // Populate form elements for deleting user
+            // You can include a confirmation message or additional details
+
+            // Set the modal title
+            document.getElementById("formTitle").textContent = "Delete User";
+
+            // Show the Delete User Modal
+            $('#deleteUserModal').modal('show');
+        }
         // Sample JavaScript functions for reset password and edit profile
         function resetPassword() {
             // Implement reset password functionality
@@ -192,27 +536,30 @@
 
         const betList = document.getElementById("betList");
 
-        betHistory.forEach(bet => {
-            const card = document.createElement("li");
-            card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+    betHistory.forEach(bet => {
+        const card = document.createElement("li");
+        card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
 
-            const cardContent = document.createElement("div");
-            cardContent.textContent = `${bet.match} - Bet Amount: ${bet.amount}, Result: ${bet.result}`;
+        const cardContent = document.createElement("div");
+        cardContent.textContent = `${bet.match} - Bet Amount: ${bet.amount}, Result: ${bet.result}`;
 
-            const deleteButton = document.createElement("button");
-            deleteButton.classList.add("btn", "btn-danger");
-            deleteButton.textContent = "Delete";
+        const deleteButton = document.createElement("button");
+        deleteButton.classList.add("btn", "btn-danger");
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = () => deleteMatch(bet.match); // Call the delete function
 
-            const endButton = document.createElement("button");
-            endButton.classList.add("btn", "btn-orange");
-            endButton.textContent = "Edit";
+        const endButton = document.createElement("button");
+        endButton.classList.add("btn", "btn-orange");
+        endButton.textContent = "End";
+        endButton.onclick = () => endMatch(bet.match); // Call the termination function
 
-            card.appendChild(cardContent);
-            card.appendChild(endButton);
-            card.appendChild(deleteButton);
+        card.appendChild(cardContent);
+        card.appendChild(endButton);
+        card.appendChild(deleteButton);
 
-            betList.appendChild(card);
-        });
+        betList.appendChild(card);
+    });
+
 
         // Sample data for user list
         const userList = [
@@ -238,12 +585,14 @@
             const deleteButton = document.createElement("button");
             deleteButton.classList.add("btn", "btn-danger");
             deleteButton.textContent = "Delete";
-            deleteButton.style.marginLeft = "auto"; // Изменяем стиль напрямую
+            deleteButton.onclick = () => confirmDelete(user.username); // Call the delete function
+
 
             const endButton = document.createElement("button");
             endButton.classList.add("btn", "btn-orange");
             endButton.textContent = "Edit";
-            endButton.style.marginLeft = "auto"; // Изменяем стиль напрямую
+            endButton.onclick = () => editUser(user.username); // Call the edit function
+
 
             card.appendChild(cardContent);
             card.appendChild(endButton);
