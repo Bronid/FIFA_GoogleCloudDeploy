@@ -121,6 +121,7 @@
         #editModal {
         color: #fff;
     }
+    
 
     #editModal .modal-content {
         background-color: #fff; 
@@ -291,81 +292,172 @@
     </div>
 </div>
       
-           <!-- Modal adding a match -->
-    <div class="modal fade" id="addMatchModal" tabindex="-1" aria-labelledby="addMatchModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">Add new match</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+           <!-- Add Modal -->
+<div class="modal fade" id="addMatchModal" tabindex="-1" aria-labelledby="addMatchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMatchModalLabel">Add new match</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="addMatchModalBody">
+                <div class="mb-3" style="color: black;">
+                    <label for="newDate" class="form-label">Date:</label>
+                    <input type="date" class="form-control" id="newDate">
                 </div>
-                <div class="modal-body" id="editModalBody" >
-                    <div class="mb-3" style="color: black;>
-                        <label for="editUsername" class="form-label">Match:</label>
-                        <input type="text" class="form-control" id="editUsername">
-                    </div>
-                
-                    <div class="mb-3"style="color: black;>
-                        <label for="editPassword" class="form-label">Bet Amount:</label>
-                        <input type="password" class="form-control" id="editPassword">
-                    </div>
-                
-                    <div class="mb-3"style="color: black;>
-                        <label for="editGroup" class="form-label">Result:</label>
-                        <input type="text" class="form-control" id="editGroup">
-                    </div>
-                
+
+                <div class="mb-3" style="color: black;">
+                    <label for="newTeamA" class="form-label">Team A:</label>
+                    <input type="text" class="form-control" id="newTeamA">
                 </div>
+
+                <div class="mb-3" style="color: black;">
+                    <label for="newTeamB" class="form-label">Team B:</label>
+                    <input type="text" class="form-control" id="newTeamB">
+                </div>
+
+                <div class="mb-3" style="color: black;">
+                    <label for="newResultA" class="form-label">Result Team A:</label>
+                    <input type="number" class="form-control" id="newResultA">
+                </div>
+
+                <div class="mb-3" style="color: black;">
+                    <label for="newResultB" class="form-label">Result Team B:</label>
+                    <input type="number" class="form-control" id="newResultB">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-orange add-new-btn-edit" onclick="saveNewMatch()">Add</button>
+                <button type="button" class="btn btn-danger add-new-btn-edit" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
+</div>
+
+    <!-- End Match Modal -->
+<div class="modal fade" id="endMatchModal" tabindex="-1" aria-labelledby="endMatchModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"  id="endMatchModalLabel">Match Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="endMatchModalBody">
+                <p id="matchTeams"></p>
+                <p id="matchResult"></p>
+                <label for="endResultA" style="color: black; class="form-label">Points for Team A:</label>
+                <input type="number" class="form-control" id="endResultA" readonly>
+                <label for="endResultB" style="color: black; class="form-label">Points for Team B:</label>
+                <input type="number" class="form-control" id="endResultB" readonly>
+              </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
         
     </div>
     
 
     <script>
-        function addMatch() {
-            // Open the modal for adding a match
-            const addMatchModal = new bootstrap.Modal(document.getElementById("addMatchModal"));
-            addMatchModal.show();
+         function endMatch(match) {
+        // Open a modal for ending the match
+        const endMatchModal = new bootstrap.Modal(document.getElementById("endMatchModal"));
+        endMatchModal.show();
+
+        // Get the match data (team names) and set it in the modal
+        document.getElementById("matchTeams").textContent = `${match.teamA} vs ${match.teamB}`;
+        currentMatch = match;
+    }
+
+    function confirmEndMatch() {
+        const resultTeamAInput = document.getElementById("endResultA");
+        const resultTeamBInput = document.getElementById("endResultB");
+
+        const resultTeamA = resultTeamAInput.value;
+        const resultTeamB = resultTeamBInput.value;
+
+       // Set the match data in the modal
+        document.getElementById("matchResult").textContent = `${resultTeamA}:${resultTeamB}`;
+
+        // Calculate the match score and set it in the modal
+        const outcome = calculateMatchOutcome(resultTeamA, resultTeamB);
+        document.getElementById("matchOutcome").textContent = outcome;
+    }
+
+    function calculateMatchOutcome(resultTeamA, resultTeamB) {
+        // Here you can add logic to calculate the match result (e.g. "Win" or "Lose")
+        // based on the points obtained for teams A and B.
+        // Return the appropriate value (e.g. "Win" or "Lose").
+
+        if (resultTeamA > resultTeamB) {
+            return "Win";
+        } else if (resultTeamA < resultTeamB) {
+            return "Lose";
+        } else {
+            return "Draw";
         }
-        function saveNewMatch() {
-            // Get data from the form
-            const matchDetailsInput = document.getElementById("matchDetails");
-            const matchDetails = matchDetailsInput.value;
+    }
+
+    function finishMatch(result) {
+        currentMatchResult = result;
+        document.getElementById("matchOutcome").textContent = result; // "Win" or "Lose"
+    }
+
+    function addMatch() {
+        // Open the modal for adding a match
+        const addMatchModal = new bootstrap.Modal(document.getElementById("addMatchModal"));
+        addMatchModal.show();
+    }
+
+    function saveNewMatch() {
+        const newDateInput = document.getElementById("newDate");
+        const newTeamAInput = document.getElementById("newTeamA");
+        const newTeamBInput = document.getElementById("newTeamB");
+        const newResultAInput = document.getElementById("newResultA");
+        const newResultBInput = document.getElementById("newResultB");
+
+        const newDate = newDateInput.value;
+        const newTeamA = newTeamAInput.value;
+        const newTeamB = newTeamBInput.value;
+        const newResultA = newResultAInput.value;
+        const newResultB = newResultBInput.value;
+
+        if (newDate && newTeamA && newTeamB && newResultA !== undefined && newResultB !== undefined) {
+            // Add a new match to the list
+            const betList = document.getElementById("betList");
+            const card = document.createElement("li");
+            card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+
+            const cardContent = document.createElement("div");
+            cardContent.textContent = `Date: ${newDate}, Teams: ${newTeamA} vs ${newTeamB}, Result: ${newResultA}:${newResultB}`;
+
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("btn", "btn-danger");
+            deleteButton.textContent = "Delete";
+            deleteButton.onclick = () => deleteMatch(newDate); // Call the delete function
+
+            const endButton = document.createElement("button");
+            endButton.classList.add("btn", "btn-orange");
+            endButton.textContent = "End";
+            endButton.onclick = () => endMatch({ date: newDate, teamA: newTeamA, teamB: newTeamB, resultTeamA: newResultA, resultTeamB: newResultB }); // Call the termination function
+
+            card.appendChild(cardContent);
+            card.appendChild(endButton);
+            card.appendChild(deleteButton);
+
+            betList.appendChild(card);
 
             // Close the modal after adding a match
             const addMatchModal = new bootstrap.Modal(document.getElementById("addMatchModal"));
             addMatchModal.hide();
-
-            if (matchDetails) {
-                // Add a new match to the list
-                const betList = document.getElementById("betList");
-                const card = document.createElement("li");
-                card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
-
-                const cardContent = document.createElement("div");
-                cardContent.textContent = matchDetails;
-
-                const deleteButton = document.createElement("button");
-                deleteButton.classList.add("btn", "btn-danger");
-                deleteButton.textContent = "Delete";
-                deleteButton.onclick = () => confirmDelete(matchDetails);
-
-                const endButton = document.createElement("button");
-                endButton.classList.add("btn", "btn-orange");
-                endButton.textContent = "Edit";
-                endButton.onclick = () => editMatch(matchDetails);
-
-                card.appendChild(cardContent);
-                card.appendChild(endButton);
-                card.appendChild(deleteButton);
-
-                betList.appendChild(card);
-
-                // Here you can add code to send an AJAX request to the server or other appropriate action
-            }
+        } else {
+            alert("Please fill in all fields.");
         }
+    }
+
+
 
     function editMatch(match) {
         const newDetails = prompt(`Edit details for the match ${match}:`, match);
@@ -390,7 +482,7 @@
     }
 
     function editUser(username) {
-        const newPassword = prompt(`Edit the password for the user ${username}:`);
+       
         if (newPassword !== null) {
             openEditModal(username, newPassword);
         }
@@ -474,7 +566,7 @@
         if (confirmDelete) {
             // Implement delete functionality
             console.log(`Deleting user: ${username}`);
-            // Tu dodaj kod do usuwania użytkownika, np. wysyłając zapytanie AJAX do serwera
+            // Add code here to remove the user, e.g. by sending an AJAX request to the server
         }
     }
         function showAddUserForm() {
