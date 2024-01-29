@@ -149,7 +149,7 @@
                         <label for="newpassword" class="bold">New Password:</label>
                         <input type="password" id="new_password" name="password">
 
-                        <button type="button" class="btn-orange" onclick="editProfile()">UPDATE INFO</button>
+                        <button type="button" class="btn-orange" onclick="updateInfo()">UPDATE INFO</button>
                         <button type="button" class="btn-danger" onclick="deleteProfile()">DELETE PROFILE</button>
                     </form>
                 </div>
@@ -181,22 +181,75 @@
         });
 
 
-        // Sample JavaScript functions for reset password and edit profile
-        function resetPassword() {
-            // Implement reset password functionality
-            console.log("Resetting password...");
+        async function updateInfo() {
+            try {
+                const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+                const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
+                const restAddress = "http://localhost:8081/users/updateuser/" + userLogin;
+
+                const updateData = {
+                    money: document.getElementById("balance_user").value,
+                    rank: document.getElementById("group").value,
+                    password: document.getElementById("new_password").value
+                };
+
+                const response = await fetch(restAddress, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken,
+                    },
+                    body: JSON.stringify(updateData),
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.json();
+                    console.error('Failed to update user info:', errorMessage.error);
+                    // Дополнительная обработка ошибки, если необходимо
+                    return;
+                }
+
+                // Успешное обновление информации о пользователе
+                console.log('User info updated successfully');
+                // Дополнительные действия, которые вы хотите выполнить после успешного обновления
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
 
-        function editProfile() {
-            // Implement edit profile functionality
-            console.log("Editing profile...");
-        }
 
         // Fetch and display user information and bet history using AJAX or fetch API
         // ...
 
         async function deleteProfile() {
-            
+            try {
+                const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
+                const restAddress = "http://localhost:8081/users/deleteuser/" + userLogin;
+                const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+
+                const response = await fetch(restAddress, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken,
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorMessage = await response.json();
+                    console.error('Failed to delete profile:', errorMessage.error);
+                    // Дополнительная обработка ошибки, если необходимо
+                    return;
+                }
+
+                // Успешное удаление профиля
+                console.log('Profile deleted successfully');
+                // Дополнительные действия, которые вы хотите выполнить после удаления профиля
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
 
 
@@ -204,8 +257,9 @@
 
         async function fillUserInfo() {
             try {
+                const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
                 const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
-                const userResponse = await fetch("http://localhost:8081/users/getcurrentuser", {
+                const userResponse = await fetch("http://localhost:8081/users/getuser/" + userLogin, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

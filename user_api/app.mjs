@@ -62,7 +62,7 @@ function generateToken(user) {
 }
 
 function hasPermissionToInvoke(req, res, next) {
-  const requestedUser = req.query.login; 
+  const requestedUser = req.params.login;
   
   if (req.user.login === requestedUser || req.user.rank === 'admin') {
     next();
@@ -169,9 +169,9 @@ app.post('/users/register', async (req, res) => {
       return res.status(400).json({ message: 'User with this login already exists' });
     }
 
-    const result = await dbo.collection('Users').insertOne({ login, password: hashedPassword, rank, money, matches });
+    const user = await dbo.collection('Users').insertOne({ login, password: hashedPassword, rank, money, matches });
     const token = generateToken({ login: login, rank: rank });
-    res.json({ result, token });
+    res.json({ login, token });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -237,19 +237,6 @@ app.post('/users/login', async (req, res) => {
   }
 });
 
-app.get('/users/getcurrentuser', verifyToken, async (req, res) => {
-  const { login } = req.user
-  console.log({login});
-
-  try {
-    const dbo = mongoc.db('FIFA');
-    const user = await dbo.collection('Users').findOne({ login });
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 /**
  * @swagger
  * /users/getuser:
@@ -299,8 +286,8 @@ app.get('/users/getcurrentuser', verifyToken, async (req, res) => {
  *             example:
  *               error: "Internal server error"
  */
-app.get('/users/getuser', verifyToken, hasPermissionToInvoke, async (req, res) => {
-  const { login } = req.query
+app.get('/users/getuser/:login', verifyToken, hasPermissionToInvoke, async (req, res) => {
+  const { login } = req.params;
   console.log({login});
 
   try {
@@ -363,13 +350,15 @@ app.put('/users/updateuser/:login', verifyToken, hasPermissionToInvoke, async (r
   const { money, rank, password } = req.body;
 
   const updatedFields = {};
-  
-  if (money !== undefined) {
-    updatedFields.money = money;
-  }
 
-  if (rank !== undefined) {
-    updatedFields.rank = rank;
+  if (req.user.rank == "admin") {
+    if (money !== undefined) {
+      updatedFields.money = money;
+    }
+  
+    if (rank !== undefined) {
+      updatedFields.rank = rank;
+    }
   }
 
   if (password !== undefined) {
