@@ -267,20 +267,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const cookies = document.cookie.split('; ')
-                .reduce((acc, cookie) => {
-                    const [name, value] = cookie.split('=');
-                    acc[name] = value;
-                    return acc;
-                }, {});
 
-            const login = cookies.userLogin;
-            const password = cookies.userPassword;
+        const token = document.cookie.replace(/(?:(?:^|.*;\s*)userToken\s*=\s*([^;]*).*$)|^.*$/, '$1');
 
-            if (login && password) {
-                window.location.href = 'main.html';
-            }
-        });
+        if (token) {
+            redirectToMainPage(token);
+        }
+    });
 
         async function register() {
             const login = document.getElementById('login').value;
@@ -309,10 +302,16 @@
                 document.cookie = `userToken=${result.token}; expires=${new Date(Date.now() + 86400000).toUTCString()}; path=/`;
 
                 // Редирект на другую страницу, например, на главную
-                window.location.href = 'main.html';
+                redirectToMainPage(result.token);
             } else {
                 document.getElementById('result').innerHTML = `Registration failed. ${result.message}`;
             }
+
+        }
+
+        function redirectToMainPage(token) {
+            // Перенаправление на основную страницу с передачей токена
+            window.location.href = `main.html`;
         }
     </script>
 </body>

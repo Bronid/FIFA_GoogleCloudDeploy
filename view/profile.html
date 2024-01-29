@@ -115,9 +115,10 @@
     <nav>
         <a class="logo" href="main.html">Candy Betting</a>
         <div class="profile">
+            <span id="username"></span>
             <a href="profile.html"><img src="images/profile.png" alt="profile"></a>
             <div class="balance">
-                <span id="balance">100</span>
+                <span id="balance">0</span>
                 <img src="images/candy.png" alt="Candy">
             </div>
         </div>
@@ -134,19 +135,19 @@
                     <form id="profileForm">
                         <!-- Display user information here -->
                         <label for="login" class="bold">Login:</label>
-                        <input type="text" id="login" name="login" readonly value="NICK">
+                        <input type="text" id="login" name="login" readonly value="">
 
                         <label for="group" class="bold">Group:</label>
-                        <input type="text" id="group" name="group" readonly value="PIDARAS">
+                        <input type="text" id="group" name="group" readonly value="">
 
                         <label for="balance" class="bold">Balance:</label>
-                        <input type="number" id="balance" name="balance" readonly value=100>
+                        <input type="number" id="balance_user" name="balance" readonly value="0">
 
                         <label for="oldpassword" class="bold">Old Password:</label>
-                        <input type="password" id="password" name="password">
+                        <input type="password" id="old_password" name="password">
 
                         <label for="newpassword" class="bold">New Password:</label>
-                        <input type="password" id="password" name="password">
+                        <input type="password" id="new_password" name="password">
 
                         <button type="button" class="btn-orange" onclick="editProfile()">UPDATE INFO</button>
                         <button type="button" class="btn-danger" onclick="deleteProfile()">DELETE PROFILE</button>
@@ -174,6 +175,12 @@
             
 
     <script>
+    
+        document.addEventListener("DOMContentLoaded", function() {
+            fillUserInfo();
+        });
+
+
         // Sample JavaScript functions for reset password and edit profile
         function resetPassword() {
             // Implement reset password functionality
@@ -188,65 +195,66 @@
         // Fetch and display user information and bet history using AJAX or fetch API
         // ...
 
-        // Sample data for bet history
-        const betHistory = [
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
+        async function deleteProfile() {
+            
+        }
 
-            // Add more bet history entries as needed
-        ];
 
         const betList = document.getElementById("betList");
 
-betHistory.forEach(bet => {
-    const card = document.createElement("li");
-    card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
-    
-    const cardContent = document.createElement("div");
-    cardContent.textContent = `${bet.match} - Bet Amount: ${bet.amount}, Result: ${bet.result}`;
-    
-    const deleteButton = document.createElement("button");
-    deleteButton.classList.add("btn", "btn-danger");
-    deleteButton.textContent = "Delete";
-    
-    card.appendChild(cardContent);
-    
-    betList.appendChild(card);
-});
+        async function fillUserInfo() {
+            try {
+                const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+                const userResponse = await fetch("http://localhost:8081/users/getcurrentuser", {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken,
+                    },
+                });
+
+                if (!userResponse.ok) {
+                    console.error('Failed to fetch user data:', userResponse.statusText);
+                    return;
+                }
+
+                const userData = await userResponse.json();
+
+                // Заполнение полей в форме профиля
+                document.getElementById("login").value = userData.login;
+                document.getElementById("group").value = userData.rank;
+                document.getElementById("balance_user").value = userData.money;
+                document.getElementById("balance").textContent = `${userData.money}`;
+                document.getElementById("username").textContent = `Hello, ${userData.login}!`;
+
+                // Заполнение списка истории ставок
+                userData.matches.forEach(bet => {
+                    console.log("test");
+                    const card = document.createElement("li");
+                    card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+                    
+                    const cardContent = document.createElement("div");
+                    cardContent.textContent = `${bet.matchID} - Bet On: ${bet.bet_on} | Bet Amount: ${bet.amount} | Result: `;
+                    if (bet.winner != null && bet.bet_on === bet.winner) {
+                        cardContent.textContent += "WIN!";
+                    }
+                    else if (bet.winner != null && bet.bet_on != bet.winner) {
+                        cardContent.textContent += "LOSE!";
+                    }
+                    else {
+                        cardContent.textContent += "WAITING";
+                    }
+                    
+                    
+                    card.appendChild(cardContent);
+                    
+                    betList.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
 
     </script>
 </body>

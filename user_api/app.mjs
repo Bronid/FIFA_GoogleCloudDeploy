@@ -170,7 +170,8 @@ app.post('/users/register', async (req, res) => {
     }
 
     const result = await dbo.collection('Users').insertOne({ login, password: hashedPassword, rank, money, matches });
-    res.json({ _id: result.insertedId, login, rank, money, matches });
+    const token = generateToken({ login: login, rank: rank });
+    res.json({ result, token });
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -231,6 +232,19 @@ app.post('/users/login', async (req, res) => {
     } else {
       res.status(401).json({ message: 'Invalid login or password' });
     }
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/users/getcurrentuser', verifyToken, async (req, res) => {
+  const { login } = req.user
+  console.log({login});
+
+  try {
+    const dbo = mongoc.db('FIFA');
+    const user = await dbo.collection('Users').findOne({ login });
+    res.json(user);
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -528,10 +542,12 @@ app.delete('/users/deleteuser/:login', verifyToken, hasPermissionToInvoke, async
 app.post('/users/dobet/:matchID', verifyToken, async (req, res) => {
   const { login } = req.user;
   const matchID = req.params.matchID;
-  const { bet_on, amount } = req.body;
+  const bet_on = req.body.bet_on;
+  const amount = parseInt(req.body.amount);
 
-  if (!Number.isInteger(amount)) {
-    return res.status(400).json({ error: 'Amount must be an integer' });
+  if (isNaN(amount) || !Number.isInteger(amount)) {
+      console.log("test");
+      return res.status(400).json({ error: 'Amount must be an integer' });
   }
 
   try {

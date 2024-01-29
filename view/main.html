@@ -8,9 +8,11 @@
     <link rel="stylesheet" href="style/main.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
+        
     <title>Main Page</title>
 
     <style>
@@ -82,9 +84,10 @@
     <nav>
         <a class="logo" href="#">Candy Betting</a>
         <div class="profile">
+            <span id="username"></span>    
             <a href="profile.html"><img src="images/profile.png" alt="profile"></a>
             <div class="balance">
-                <span id="balance">100</span>
+                <span id="balance">0</span>
                 <img src="images/candy.png" alt="Candy">
             </div>
         </div>
@@ -118,30 +121,30 @@
                             <!-- Выбор результата (команда1, команда2, ничья) с использованием чекбокса -->
                             <div class="mb-4 d-flex justify-content-between align-items-center">
                                 <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" name="result" value="team1">
-                                    <label class="form-check-label team-details-modul">Команда 1</label>
+                                    <input type="radio" class="form-check-input" name="result" value="team1">
+                                    <label class="form-check-label team-details-modul" id="team1Label">Команда 1</label>
                                 </div>
                                 <div class="align-items-center">
                                     <label class="vs">VS</label>
                                 </div>
                                 <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" name="result" value="team2">
-                                    <label class="form-check-label team-details-modul">Команда 2</label>
+                                    <input type="radio" class="form-check-input" name="result" value="team2">
+                                    <label class="form-check-label team-details-modul" id="team2Label">Команда 2</label>
                                 </div>
                             </div>
                             <div class="form-check al">
-                                <input type="checkbox" class="form-check-input" name="result" value="draw">
-                                <label class="form-check-label team-details-modul">Ничья</label>
+                                <input type="radio" class="form-check-input" name="result" value="draw">
+                                <label class="form-check-label team-details-modul">Draw</label>
                             </div>
-
-
-                            <!-- Выбор суммы ставки с использованием слайдера -->
+        
+                            <!-- Ввод суммы ставки с использованием текстового поля -->
                             <div class="mb-4 mt-5">
                                 <label for="betAmount" class="form-label">Amount of your bet:</label>
-                                <input type="range" class="form-range" id="betAmount" min="1" max="100" step="1">
+                                <input type="text" class="form-control" id="betAmount" placeholder="Enter your bet amount">
                             </div>
 
-                            <button type="button" class="btn big-blue-button-t mt-3 mb-5">Bet</button>
+        
+                            <button type="button" class="btn big-blue-button-t mt-3 mb-5" id="betButton">Bet</button>
                             <!-- Кнопка для совершения ставки -->
                         </form>
                     </div>
@@ -151,6 +154,135 @@
     </div>
     </div>
     <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+        try {
+        // Получаем текущего пользователя и его баланс
+        const user = await getCurrentUser();
+        
+        // Устанавливаем баланс в соответствующий элемент страницы
+        document.getElementById("balance").textContent = `${user.money}`;
+        document.getElementById("username").textContent = `Hello, ${user.login}!`;
+        } catch (error) {
+           console.error('Error fetching user data:', error);
+        }
+        });
+
+        async function doBet(matchid) {
+        const restAddress = "http://localhost:8081/users/dobet/" + matchid;
+
+        const radioButtons = document.getElementsByName('result');
+
+        let betOn = null;
+        const betAmountInput = document.getElementById('betAmount');
+        const betAmount = betAmountInput.value;
+        
+
+        for (const radioButton of radioButtons) {
+            if (radioButton.checked) {
+                const labelElement = radioButton.closest('div.form-check').querySelector('label');
+                if (labelElement) {
+                    betOn = labelElement.textContent.trim();
+                    //console.log('Found label element:', labelElement);
+                } else {
+                    console.error('Label element not found for the selected radio button.');
+                }
+                break;
+            }
+        }
+
+        // Получаем токен пользователя из куки
+        const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+
+        try {
+            const response = await fetch(restAddress, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': userToken,
+                },
+                body: JSON.stringify({ bet_on: betOn, amount: betAmount }),
+            });
+
+            if (response.ok) {
+                // Обработка успешного ответа
+                console.log('Bet placed successfully!');
+            } else {
+                console.error('Failed to place bet:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+        async function getCurrentUser() {
+        const restAddress = "http://localhost:8081/users/getcurrentuser";
+        const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+
+        try {
+            const response = await fetch(restAddress, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': userToken,
+                },
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                return userData;
+            } else {
+                throw new Error('Failed to fetch user data');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            throw error;
+        }
+        }
+
+        async function openBetModal(id) {
+        const restAddress = "http://localhost:8080/matches/" + id;
+
+        try {
+            const response = await fetch(restAddress, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const matchData = await response.json();
+                document.getElementById('team1Label').innerHTML = matchData[0].country_home;
+                document.getElementById('team2Label').innerHTML = matchData[0].country_guest;
+
+                const userBalance = parseFloat(document.getElementById("balance").textContent);
+
+                const betButtonInsideModal = document.querySelector('#betModal .big-blue-button-t');
+
+                if (betButtonInsideModal) {
+                    // Remove any existing click event listeners
+                    betButtonInsideModal.removeEventListener('click', doBet);
+                    
+                    // Add a new click event listener
+                    betButtonInsideModal.addEventListener('click', function () {
+                        doBet(id);
+                    });
+                } else {
+                    console.error('Button with class "big-blue-button-t" not found inside the modal');
+                }
+
+            } else {
+                console.error('Failed to fetch match data:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+
+
+
+
         function submitSearch() {
             event.preventDefault();
             const searchInputValue = document.getElementById('searchInput').value.trim();
@@ -165,7 +297,7 @@
             var queryParams = new URLSearchParams(window.location.search);
             var parameterValue = queryParams.get('filter');
             console.log('Parameter Value:', parameterValue);
-            var restAdress = 'https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/matches'
+            var restAdress = 'http://localhost:8080/matches'
             if (parameterValue !== null) {
                 restAdress += '/' + parameterValue
             }
@@ -181,36 +313,9 @@
 
         }
 
-        async function giveScore(matchId) {
-            try {
-                const login = getCookie("userLogin");
-                const password = getCookie("userPassword");
-                console.log('Received login:', login);
-                console.log('Received password:', password);
-
-                const response = await fetch('https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/givescore', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ login, password }), // Use login and password from cookies
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    await updateMatch(matchId);
-                } else {
-                    console.error('Failed to give score:', result.message);
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
         async function updateMatch(matchId) {
             try {
-                const response = await fetch(`https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/updatematches/${matchId}`, {
+                const response = await fetch(`http://localhost:8080/updatematches/${matchId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -236,7 +341,7 @@
 
         async function deleteMatch(matchId) {
             try {
-                const response = await fetch(`https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/${matchId}`, {
+                const response = await fetch(`http://localhost:8080/${matchId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -285,13 +390,6 @@
                 const scoreSection = document.createElement('div');
                 scoreSection.className = 'score-section';
 
-                const giveScoreButton = document.createElement('button');
-                giveScoreButton.className = 'green-button';
-                giveScoreButton.textContent = 'Give Score';
-                giveScoreButton.onclick = function () {
-                    giveScore(match_json._id);
-                };
-
                 const deleteButton = document.createElement('button');
                 deleteButton.className = 'red-button';
                 deleteButton.textContent = 'Delete';
@@ -312,14 +410,8 @@
                 bigBlueButton.setAttribute('data-bs-toggle', 'modal');
                 bigBlueButton.setAttribute('data-bs-target', '#betModal');
 
-                // Обработчик изменения состояния Toggle
-                bigBlueButton.addEventListener('change', function () {
-                    if (bigBlueButton.checked) {
-                        // Код, который выполнится при включении Toggle
-                        $('#betModal').modal('show'); // Показать модальное окно
-                    } else {
-                        // Код, который выполнится при выключении Toggle
-                    }
+                bigBlueButton.addEventListener('click', function () {
+                    openBetModal(match_json._id);
                 });
 
                 matchDetails.appendChild(homeTeam);
@@ -340,9 +432,8 @@
 
 
         window.onload = getJSON();
+        
     </script>
-
-
 
 
 </body>

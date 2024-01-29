@@ -262,7 +262,7 @@
                         required>
                 </div>
 
-                <button type="button" onclick="autoLogin()" class="btn btn-danger">Login</button>
+                <button type="button" onclick="performLogin()" class="btn btn-danger">Login</button>
                 <div class="register-link">
                     Don't have an account? <a href="register.html">Sign up</a>
                 </div>
@@ -308,7 +308,7 @@
 
         function redirectToMainPage(token) {
             // Перенаправление на основную страницу с передачей токена
-            window.location.href = `main.html?token=${token}`;
+            window.location.href = `main.html`;
         }
     </script>
 </body>
