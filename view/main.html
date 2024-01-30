@@ -363,6 +363,10 @@ function getJSON() {
     });
 }
 
+
+
+
+
         async function updateMatch(matchId) {
             try {
                 const response = await fetch(`http://localhost:8080/updatematches/${matchId}`, {
@@ -556,6 +560,10 @@ function getJSON() {
                 matchList.appendChild(card);
             });
         }
+
+
+
+
         window.onload = getJSON();
         function logout() {
         // Clear all cookies
