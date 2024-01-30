@@ -356,9 +356,7 @@ app.put('/updatematches/:nameparam', verifyToken, isAdmin, async (req, res) => {
               },
             }
           );
-            console.log(addWinner);
           if (user.matches[betIndex].bet_on === addWinner) {
-            console.log(user.login);
             await dbo.collection('Users').updateOne({ _id: user._id }, { $inc: { money: user.matches[betIndex].amount * 2 } });
           }
         }
