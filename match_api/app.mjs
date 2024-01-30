@@ -350,14 +350,15 @@ app.put('/updatematches/:nameparam', verifyToken, isAdmin, async (req, res) => {
             { _id: user._id, 'matches.matchID': matchId._id },
             {
               $set: {
-                'matches.$.winner': winner,
+                'matches.$.winner': addWinner,
                 'matches.$.team_1_score': req.body.country_home_score,
                 'matches.$.team_2_score': req.body.country_guest_score,
               },
             }
           );
-
-          if (user.matches[betIndex].bet_on === winner) {
+            console.log(addWinner);
+          if (user.matches[betIndex].bet_on === addWinner) {
+            console.log(user.login);
             await dbo.collection('Users').updateOne({ _id: user._id }, { $inc: { money: user.matches[betIndex].amount * 2 } });
           }
         }
