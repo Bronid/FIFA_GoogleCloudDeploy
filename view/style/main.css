@@ -146,6 +146,13 @@ nav a {
     color: white;
 }
 
+.dateold {
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: white;
+}
+
 .balance img {
     margin-left: 5px;
     height: 20px;
@@ -174,11 +181,28 @@ nav a {
 
 .vs {
     pointer-events: none;
+    color: white;
     font-family: 'Arial Black', sans-serif;
     font-weight: bold;
     font-size: 20px;
     text-transform: uppercase;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.vsf {
+    pointer-events: none;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: rgba(0, 123, 255, 0.7);
+    position: relative;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Arial Black', sans-serif;
+    font-weight: bold;
+    font-size: 20px;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    transition: opacity 0.3s ease-in-out;
 }
 
 .losung {
@@ -280,9 +304,21 @@ nav a {
 
 .team-details {
     text-align: center;
+    font-family: 'Arial Black', sans-serif;
+    font-weight: bold;
     font-size: 23px;
     color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     transition: opacity 0.3s ease-in-out;
+}
+
+.team-detailsold {
+    text-align: center;
+    font-family: 'Arial Black', sans-serif;
+    font-weight: bold;
+    font-size: 23px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .team-details-modul {
@@ -302,6 +338,16 @@ nav a {
     position: relative;
     border-radius: 10px;
     transition: opacity 0.3s ease-in-out;
+}
+
+.scoreold {
+    font-size: 30px;
+    color: white;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: rgba(0, 123, 255, 0.7);
+    position: relative;
+    border-radius: 10px;
 }
 
 .big-blue-button-t {
@@ -346,6 +392,10 @@ nav a {
 }
 
 .card:hover .score {
+    opacity: 0;
+}
+
+.card:hover .vsf {
     opacity: 0;
 }
 

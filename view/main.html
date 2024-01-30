@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
-        
+
     <title>Main Page</title>
 
     <style>
@@ -84,7 +84,7 @@
     <nav>
         <a class="logo" href="#">Candy Betting</a>
         <div class="profile">
-            <span id="username"></span>    
+            <span id="username"></span>
             <a href="profile.html"><img src="images/profile.png" alt="profile"></a>
             <div class="balance">
                 <span id="balance">0</span>
@@ -136,14 +136,15 @@
                                 <input type="radio" class="form-check-input" name="result" value="draw">
                                 <label class="form-check-label team-details-modul">Draw</label>
                             </div>
-        
+
                             <!-- Ввод суммы ставки с использованием текстового поля -->
                             <div class="mb-4 mt-5">
                                 <label for="betAmount" class="form-label">Amount of your bet:</label>
-                                <input type="text" class="form-control" id="betAmount" placeholder="Enter your bet amount">
+                                <input type="text" class="form-control" id="betAmount"
+                                    placeholder="Enter your bet amount">
                             </div>
 
-        
+
                             <button type="button" class="btn big-blue-button-t mt-3 mb-5" id="betButton">Bet</button>
                             <!-- Кнопка для совершения ставки -->
                         </form>
@@ -155,130 +156,130 @@
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
-        try {
-        // Получаем текущего пользователя и его баланс
-        const user = await getCurrentUser();
-        
-        // Устанавливаем баланс в соответствующий элемент страницы
-        document.getElementById("balance").textContent = `${user.money}`;
-        document.getElementById("username").textContent = `Hello, ${user.login}!`;
-        } catch (error) {
-           console.error('Error fetching user data:', error);
-        }
+            try {
+                // Получаем текущего пользователя и его баланс
+                const user = await getCurrentUser();
+
+                // Устанавливаем баланс в соответствующий элемент страницы
+                document.getElementById("balance").textContent = `${user.money}`;
+                document.getElementById("username").textContent = `Hello, ${user.login}!`;
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
         });
 
         async function doBet(matchid) {
-        const restAddress = "http://localhost:8081/users/dobet/" + matchid;
+            const restAddress = "http://localhost:8081/users/dobet/" + matchid;
 
-        const radioButtons = document.getElementsByName('result');
+            const radioButtons = document.getElementsByName('result');
 
-        let betOn = null;
-        const betAmountInput = document.getElementById('betAmount');
-        const betAmount = betAmountInput.value;
-        
+            let betOn = null;
+            const betAmountInput = document.getElementById('betAmount');
+            const betAmount = betAmountInput.value;
 
-        for (const radioButton of radioButtons) {
-            if (radioButton.checked) {
-                const labelElement = radioButton.closest('div.form-check').querySelector('label');
-                if (labelElement) {
-                    betOn = labelElement.textContent.trim();
-                    //console.log('Found label element:', labelElement);
-                } else {
-                    console.error('Label element not found for the selected radio button.');
+
+            for (const radioButton of radioButtons) {
+                if (radioButton.checked) {
+                    const labelElement = radioButton.closest('div.form-check').querySelector('label');
+                    if (labelElement) {
+                        betOn = labelElement.textContent.trim();
+                        //console.log('Found label element:', labelElement);
+                    } else {
+                        console.error('Label element not found for the selected radio button.');
+                    }
+                    break;
                 }
-                break;
+            }
+
+            // Получаем токен пользователя из куки
+            const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+
+            try {
+                const response = await fetch(restAddress, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken,
+                    },
+                    body: JSON.stringify({ bet_on: betOn, amount: betAmount }),
+                });
+
+                if (response.ok) {
+                    // Обработка успешного ответа
+                    console.log('Bet placed successfully!');
+                } else {
+                    console.error('Failed to place bet:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
             }
         }
-
-        // Получаем токен пользователя из куки
-        const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
-
-        try {
-            const response = await fetch(restAddress, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': userToken,
-                },
-                body: JSON.stringify({ bet_on: betOn, amount: betAmount }),
-            });
-
-            if (response.ok) {
-                // Обработка успешного ответа
-                console.log('Bet placed successfully!');
-            } else {
-                console.error('Failed to place bet:', response.statusText);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
 
         async function getCurrentUser() {
             const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
             const restAddress = "http://localhost:8081/users/getuser/" + userLogin;
             const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
 
-        try {
-            const response = await fetch(restAddress, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': userToken,
-                },
-            });
+            try {
+                const response = await fetch(restAddress, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken,
+                    },
+                });
 
-            if (response.ok) {
-                const userData = await response.json();
-                return userData;
-            } else {
-                throw new Error('Failed to fetch user data');
+                if (response.ok) {
+                    const userData = await response.json();
+                    return userData;
+                } else {
+                    throw new Error('Failed to fetch user data');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
             }
-        } catch (error) {
-            console.error('Error:', error);
-            throw error;
-        }
         }
 
         async function openBetModal(id) {
-        const restAddress = "http://localhost:8080/matches/" + id;
+            const restAddress = "http://localhost:8080/matches/" + id;
 
-        try {
-            const response = await fetch(restAddress, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
+            try {
+                const response = await fetch(restAddress, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
 
-            if (response.ok) {
-                const matchData = await response.json();
-                document.getElementById('team1Label').innerHTML = matchData[0].country_home;
-                document.getElementById('team2Label').innerHTML = matchData[0].country_guest;
+                if (response.ok) {
+                    const matchData = await response.json();
+                    document.getElementById('team1Label').innerHTML = matchData[0].country_home;
+                    document.getElementById('team2Label').innerHTML = matchData[0].country_guest;
 
-                const userBalance = parseFloat(document.getElementById("balance").textContent);
+                    const userBalance = parseFloat(document.getElementById("balance").textContent);
 
-                const betButtonInsideModal = document.querySelector('#betModal .big-blue-button-t');
+                    const betButtonInsideModal = document.querySelector('#betModal .big-blue-button-t');
 
-                if (betButtonInsideModal) {
-                    // Remove any existing click event listeners
-                    betButtonInsideModal.removeEventListener('click', doBet);
-                    
-                    // Add a new click event listener
-                    betButtonInsideModal.addEventListener('click', function () {
-                        doBet(id);
-                    });
+                    if (betButtonInsideModal) {
+                        // Remove any existing click event listeners
+                        betButtonInsideModal.removeEventListener('click', doBet);
+
+                        // Add a new click event listener
+                        betButtonInsideModal.addEventListener('click', function () {
+                            doBet(id);
+                        });
+                    } else {
+                        console.error('Button with class "big-blue-button-t" not found inside the modal');
+                    }
+
                 } else {
-                    console.error('Button with class "big-blue-button-t" not found inside the modal');
+                    console.error('Failed to fetch match data:', response.statusText);
                 }
-
-            } else {
-                console.error('Failed to fetch match data:', response.statusText);
+            } catch (error) {
+                console.error('Error:', error);
             }
-        } catch (error) {
-            console.error('Error:', error);
         }
-    }
 
 
 
@@ -294,25 +295,43 @@
             }
         }
 
-        function getJSON() {
-            var queryParams = new URLSearchParams(window.location.search);
-            var parameterValue = queryParams.get('filter');
-            console.log('Parameter Value:', parameterValue);
-            var restAdress = 'http://localhost:8080/matches'
-            if (parameterValue !== null) {
-                restAdress += '/' + parameterValue
-            }
 
-            fetch(restAdress, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-                .then(response => response.json())
-                .then(json => populateMatchList(json));
+function getJSON() {
+    var queryParams = new URLSearchParams(window.location.search);
+    var parameterValue = queryParams.get('filter');
+    console.log('Parameter Value:', parameterValue);
+    var restAdress = 'http://localhost:8080/matches';
 
-        }
+    if (parameterValue !== null) {
+        restAdress += '/' + parameterValue;
+    }
+
+    fetch(restAdress, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(json => {
+        console.log('Received JSON:', json);
+
+        // Фильтрация матчей по наличию и значению поля is_end
+        var filteredOldMatches = json.filter(match => match.is_end === true);
+        var filteredMatches = json.filter(match => match.is_end === undefined);
+
+        // Здесь можно использовать отфильтрованный массив
+        populateOldMatchList(filteredOldMatches);
+        populateMatchList(filteredMatches)
+    })
+    .catch(error => {
+        console.error('Error fetching data:', error);
+    });
+}
+
+
+
+
 
         async function updateMatch(matchId) {
             try {
@@ -384,6 +403,10 @@
                 score.className = 'score';
                 score.innerHTML = '<strong>' + match_json.country_home_score + ' : ' + match_json.country_guest_score + '</strong>';
 
+                const vsf = document.createElement('div');
+                vsf.className = 'vsf';
+                vsf.innerHTML = 'vs';
+
                 const guestTeam = document.createElement('div');
                 guestTeam.className = 'team-details';
                 guestTeam.innerHTML = match_json.country_guest;
@@ -416,12 +439,11 @@
                 });
 
                 matchDetails.appendChild(homeTeam);
-                matchDetails.appendChild(score)
+                matchDetails.appendChild(vsf);
                 matchDetails.appendChild(guestTeam);
 
 
                 cardBody.appendChild(matchDetails);
-                cardBody.appendChild(scoreSection);
                 cardBody.appendChild(bigBlueButton);
 
                 card.appendChild(cardHeader);
@@ -431,9 +453,85 @@
             });
         }
 
+        function populateOldMatchList(json) {
+            const matchList = document.getElementById('matchList');
+
+            json.forEach(match_json => {
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const cardHeader = document.createElement('div');
+                cardHeader.className = 'card-body dateold';
+                cardHeader.textContent = 'Date: ' + match_json.date;
+
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body';
+
+                const matchDetails = document.createElement('div');
+                matchDetails.className = 'match-details';
+
+                const homeTeam = document.createElement('div');
+                homeTeam.className = 'team-detailsold';
+                homeTeam.innerHTML = match_json.country_home;
+
+                const score = document.createElement('div');
+                score.className = 'scoreold';
+                score.innerHTML = '<strong>' + match_json.country_home_score + ' : ' + match_json.country_guest_score + '</strong>';
+
+                const vsf = document.createElement('div');
+                vsf.className = 'vsf';
+                vsf.innerHTML = 'vs';
+
+                const guestTeam = document.createElement('div');
+                guestTeam.className = 'team-detailsold';
+                guestTeam.innerHTML = match_json.country_guest;
+
+                const scoreSection = document.createElement('div');
+                scoreSection.className = 'score-section';
+
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'red-button';
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = function () {
+                    deleteMatch(match_json._id);
+                };
+
+                const editLink = document.createElement('a');
+                editLink.className = 'blue-button';
+                editLink.href = 'updatematch.html?filter=' + match_json._id;
+                editLink.textContent = 'Edit';
+
+
+                const bigBlueButton = document.createElement('button');
+                bigBlueButton.className = 'button';
+                bigBlueButton.textContent = 'BET';
+                bigBlueButton.setAttribute('data-toggle', 'toggle');
+                bigBlueButton.setAttribute('data-bs-toggle', 'modal');
+                bigBlueButton.setAttribute('data-bs-target', '#betModal');
+
+                bigBlueButton.addEventListener('click', function () {
+                    openBetModal(match_json._id);
+                });
+
+                matchDetails.appendChild(homeTeam);
+                matchDetails.appendChild(score);
+                matchDetails.appendChild(guestTeam);
+
+
+                cardBody.appendChild(matchDetails);
+
+                card.appendChild(cardHeader);
+                card.appendChild(cardBody);
+
+                matchList.appendChild(card);
+            });
+        }
+
+
+
 
         window.onload = getJSON();
-        
+
     </script>
 
 
