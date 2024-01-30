@@ -107,6 +107,35 @@
 .list-group-item:last-child {
     border-radius: 10px;
 }
+.logout {
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333333b6;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .cookie-banner p {
+            margin: 0;
+        }
+
+        .cookie-banner button {
+            background-color: #ffa550;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
     </style>
 </head>
 
@@ -120,6 +149,11 @@
             <div class="balance">
                 <span id="balance">0</span>
                 <img src="images/candy.png" alt="Candy">
+            </div>
+            <div class="profile">
+                <button onclick="logout()" style="background: none; border: none; padding: 0; margin: 0; cursor: pointer;">
+                    <img src="images/logout.png" alt="logout">
+                </button>          
             </div>
         </div>
     </nav>
@@ -309,8 +343,82 @@
                 console.error('Error:', error);
             }
         }
+        function logout() {
+        // Clear all cookies
+        const cookies = document.cookie.split("; ");
 
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i];
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+        }
+
+        // Redirect to the login page
+        window.location.href = 'login.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+        // Check if the user has previously accepted cookies
+        if (!getCookie('cookiesAccepted')) {
+            // If not, show banner
+            showCookieBanner();
+            }
+        });
+
+        function showCookieBanner() {
+            var cookieBanner = document.getElementById('cookieBanner');
+            if (cookieBanner) {
+            cookieBanner.style.display = 'block';
+            }
+        }
+
+        function acceptCookies() {
+        // Set an acceptance cookie
+            document.cookie = 'cookiesAccepted=true; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/; SameSite=Strict';
+
+        // Hide banner
+            var cookieBanner = document.getElementById('cookieBanner');
+            if (cookieBanner) {
+            cookieBanner.style.display = 'none';
+            }
+            console.log("Cookies accepted!");
+        }
+
+        function getCookie(name) {
+            var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            if (match) return match[2];
+        }
+
+        function clearCookies() {
+            const  cookies = document.cookie.split("; ");
+
+        for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        }
+
+        // Optional: Redirect to login page after clearing cookies
+        window.location.href = 'login.html';
+        }
+
+        document.cookie = "exampleCookie=exampleValue; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/";
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if the user has previously accepted cookies
+            if (!getCookie('cookiesAccepted')) {
+                // If not, show banner
+                showCookieBanner();
+            }
+        });
     </script>
+    
+    <div id="cookieBanner" class="cookie-banner">
+        <p>This website uses cookies to provide services at the highest level. By continuing to use the site, you agree to their use.</p>
+        <button onclick="acceptCookies()">Accept</button>
+    </div>
 </body>
 
 </html>
