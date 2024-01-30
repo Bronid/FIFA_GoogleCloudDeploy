@@ -203,7 +203,7 @@
         });
 
         async function doBet(matchid) {
-            const restAddress = "http://localhost:8081/users/dobet/" + matchid;
+            const restAddress = "https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/dobet/" + matchid;
 
             const radioButtons = document.getElementsByName('result');
 
@@ -251,7 +251,7 @@
 
         async function getCurrentUser() {
             const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
-            const restAddress = "http://localhost:8081/users/getuser/" + userLogin;
+            const restAddress = "https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/getuser/" + userLogin;
             const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
 
             try {
@@ -276,7 +276,7 @@
         }
 
         async function openBetModal(id) {
-            const restAddress = "http://localhost:8080/matches/" + id;
+            const restAddress = "https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/matches/" + id;
 
             try {
                 const response = await fetch(restAddress, {
@@ -334,7 +334,7 @@ function getJSON() {
     var queryParams = new URLSearchParams(window.location.search);
     var parameterValue = queryParams.get('filter');
     console.log('Parameter Value:', parameterValue);
-    var restAdress = 'http://localhost:8080/matches';
+    var restAdress = 'https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/matches';
 
     if (parameterValue !== null) {
         restAdress += '/' + parameterValue;
@@ -369,7 +369,7 @@ function getJSON() {
 
         async function updateMatch(matchId) {
             try {
-                const response = await fetch(`http://localhost:8080/updatematches/${matchId}`, {
+                const response = await fetch(`https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/updatematches/${matchId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -395,7 +395,7 @@ function getJSON() {
 
         async function deleteMatch(matchId) {
             try {
-                const response = await fetch(`http://localhost:8080/${matchId}`, {
+                const response = await fetch(`https://fifa-project-backend-match-gur6ebemfq-ew.a.run.app/${matchId}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',

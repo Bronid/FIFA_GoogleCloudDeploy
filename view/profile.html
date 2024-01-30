@@ -218,7 +218,7 @@
             try {
                 const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
                 const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
-                const restAddress = "http://localhost:8081/users/updateuser/" + userLogin;
+                const restAddress = "https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/updateuser/" + userLogin;
 
                 const updateData = {
                     money: document.getElementById("balance_user").value,
@@ -258,7 +258,7 @@
         async function deleteProfile() {
             try {
                 const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
-                const restAddress = "http://localhost:8081/users/deleteuser/" + userLogin;
+                const restAddress = "https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/deleteuser/" + userLogin;
                 const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
 
                 const response = await fetch(restAddress, {
@@ -292,7 +292,7 @@
             try {
                 const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
                 const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
-                const userResponse = await fetch("http://localhost:8081/users/getuser/" + userLogin, {
+                const userResponse = await fetch("https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/getuser/" + userLogin, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
