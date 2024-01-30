@@ -243,13 +243,7 @@
         <a class="logo" href="main.html">Candy Betting</a>
         <div class="profile">
             <a href="profile.html"><img src="images/profile.png" alt="profile"></a>
-            <div class="balance">
-                <span id="balance">100</span>
-                <img src="images/candy.png" alt="Candy">
-            </div>
-            <div class="profile">
-                <a href="login.html"><img src="images/logout.png" alt="logout"></a>                
-            </div>
+            
         </div>
     </nav>
 <!-- Add Modal -->
@@ -850,24 +844,27 @@
             }
         }
         function logout() {
-                window.location.href = 'login.html';
-            // Clear all cookies
-                document.cookie.split(";").forEach((c) => {
-                    document.cookie = c
-                        .replace(/^ +/, "")
-                        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-                });
-                    // Redirect to the login page
-                window.location.href = 'login.html';
+        // Clear all cookies
+        const cookies = document.cookie.split("; ");
+
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i];
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        // Redirect to the login page
+        window.location.href = 'login.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
         // Check if the user has previously accepted cookies
-             if (!getCookie('cookiesAccepted')) {
+        if (!getCookie('cookiesAccepted')) {
             // If not, show banner
-                showCookieBanner();
-            }
-        });
+            showCookieBanner();
+        }
+    });
 
         function showCookieBanner() {
             var cookieBanner = document.getElementById('cookieBanner');
@@ -875,6 +872,7 @@
             cookieBanner.style.display = 'block';
             }
         }
+        
 
         function acceptCookies() {
         // Set an acceptance cookie
@@ -892,6 +890,30 @@
             var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
             if (match) return match[2];
         }
+
+        function clearCookies() {
+            const  cookies = document.cookie.split("; ");
+
+        for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+
+        // Optional: Redirect to login page after clearing cookies
+        window.location.href = 'login.html';
+        }
+
+        document.cookie = "exampleCookie=exampleValue; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/";
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if the user has previously accepted cookies
+            if (!getCookie('cookiesAccepted')) {
+                // If not, show banner
+                showCookieBanner();
+            }
+        });
     </script>
     
     <div id="cookieBanner" class="cookie-banner">
