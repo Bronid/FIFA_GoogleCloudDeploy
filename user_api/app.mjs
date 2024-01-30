@@ -581,6 +581,91 @@ app.post('/users/dobet/:matchID', verifyToken, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /users/adduser:
+ *   post:
+ *     summary: Add a new user
+ *     security:
+ *       - jwt: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               login:
+ *                 type: string
+ *                 minLength: 6
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *               rank:
+ *                 type: string
+ *                 enum: [user, admin]
+ *     responses:
+ *       '201':
+ *         description: User added successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               _id: "1234567890"
+ *               login: "new_user"
+ *               rank: "user"
+ *               money: 0
+ *               matches: []
+ *       '400':
+ *         description: Bad request, invalid input
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: "Login should have at least 6 characters"
+ *               message: "Password should have at least 6 characters"
+ *               message: "Invalid rank"
+ *       '401':
+ *         description: Token has expired or failed to authenticate token
+ *       '403':
+ *         description: Access forbidden for non-admin users
+ *       '500':
+ *         description: Internal server error
+ */
+app.post('/users/adduser', verifyToken, isAdmin, async (req, res) => {
+  const MIN_LOGIN_LENGTH = 6;
+  const MIN_PASSWORD_LENGTH = 6;
+  const { login, password, rank, money } = req.body;
+  const matches = [];
+
+  if (login.length < MIN_LOGIN_LENGTH) {
+    return res.status(400).json({ message: `Login should have at least ${MIN_LOGIN_LENGTH} characters` });
+  }
+
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return res.status(400).json({ message: `Password should have at least ${MIN_PASSWORD_LENGTH} characters` });
+  }
+
+  if (!['user', 'admin'].includes(rank)) {
+    return res.status(400).json({ message: 'Invalid rank' });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  try {
+    const dbo = mongoc.db('FIFA');
+    const existingUser = await dbo.collection('Users').findOne({ login });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this login already exists' });
+    }
+
+    const user = await dbo.collection('Users').insertOne({ login, password: hashedPassword, rank, money, matches });
+    const addedUser = await dbo.collection('Users').findOne({ _id: user.insertedId });
+    res.status(201).json(addedUser);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 app.listen(8081, () => {
   console.log('Server is running');

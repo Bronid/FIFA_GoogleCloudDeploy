@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, 'view')));
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   next();
 });
 
@@ -176,9 +176,10 @@ app.post('/addmatch', verifyToken, isAdmin, async (req, res) => {
   try {
     const { date, country_home, country_guest } = req.body;
 
-    const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!date.match(dateRegex)) {
-      return res.status(400).json({ error: 'Invalid date format. Use DD-MM-YYYY.' });
+      console.log(date);
+      return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD.' });
     }
 
     const newMatch = {
@@ -296,11 +297,33 @@ app.put('/updatematches/:nameparam', verifyToken, isAdmin, async (req, res) => {
       return res.json({ error: 'You cannot update this match. This match has ended.' });
     }
 
-    const isValidDate = /\d{2}-\d{2}-\d{4}/.test(req.body.date);
-    const isIntegerScore = Number.isInteger(req.body.country_home_score) && Number.isInteger(req.body.country_guest_score);
+    const homeScore = parseInt(req.body.country_home_score);
+    const guestScore = parseInt(req.body.country_guest_score);
+    console.log('homeScore:', homeScore);
+    console.log('guestScore:', guestScore);
 
-    if (!isValidDate || !isIntegerScore) {
+    const isIntegerScore = !isNaN(homeScore) && !isNaN(guestScore);
+    console.log(isIntegerScore);
+
+    if (!isIntegerScore) {
+      console.log("test");
       return res.status(400).json({ error: 'Invalid date or score format' });
+    }
+
+    var addWinner;
+    var add_is_end;
+
+    if (homeScore > guestScore) {
+      addWinner = req.body.country_home;
+      add_is_end = true;
+    }
+    else if (homeScore < guestScore) {
+      addWinner = req.body.country_guest;
+      add_is_end = true;
+    }
+    else {
+      addWinner = "Draw";
+      add_is_end = true;
     }
 
     const updateDocument = {
@@ -310,14 +333,14 @@ app.put('/updatematches/:nameparam', verifyToken, isAdmin, async (req, res) => {
         country_guest: req.body.country_guest || match.country_guest,
         country_home_score: req.body.country_home_score || match.country_home_score,
         country_guest_score: req.body.country_guest_score || match.country_guest_score,
-        is_end: req.body.is_end || match.is_end,
-        winner: req.body.winner || match.winner,
+        is_end: add_is_end || match.is_end,
+        winner: addWinner || match.winner,
       },
     };
 
     const result = await dbo.collection('Match').updateOne(matchId, updateDocument);
 
-    if (req.body.is_end && req.body.winner) {
+    if (add_is_end) {
       const userBets = await dbo.collection('Users').find({ 'matches.matchID': matchId._id }).toArray();
 
       userBets.forEach(async (user) => {
@@ -327,14 +350,14 @@ app.put('/updatematches/:nameparam', verifyToken, isAdmin, async (req, res) => {
             { _id: user._id, 'matches.matchID': matchId._id },
             {
               $set: {
-                'matches.$.winner': req.body.winner,
+                'matches.$.winner': winner,
                 'matches.$.team_1_score': req.body.country_home_score,
                 'matches.$.team_2_score': req.body.country_guest_score,
               },
             }
           );
 
-          if (user.matches[betIndex].bet_on === req.body.winner) {
+          if (user.matches[betIndex].bet_on === winner) {
             await dbo.collection('Users').updateOne({ _id: user._id }, { $inc: { money: user.matches[betIndex].amount * 2 } });
           }
         }

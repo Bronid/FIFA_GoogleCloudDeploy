@@ -228,14 +228,15 @@
                 <h5 class="modal-title" id="addModalLabel">Add new user</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" style="color: black;>
-                <!-- Dodaj etykiety dla pól do wprowadzania nowego użytkownika -->
+            <div class="modal-body" style="color: black;">
                 <label for="newUsername" class="form-label">New login:</label>
                 <input type="text" class="form-control" id="newUsername">
                 <label for="newPassword" class="form-label">New password:</label>
                 <input type="password" class="form-control" id="newPassword">
-                <label for="confirmPassword" class="form-label">Confirm password:</label>
-                <input type="password" class="form-control" id="confirmPassword">
+                <label for="newBalance" class="form-label">New balance:</label>
+                <input type="number" class="form-control" id="newBalance">
+                <label for="newGroup" class="form-label">New group:</label>
+                <input type="text" class="form-control" id="newGroup">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-orange add-new-btn" onclick="saveNewUser()">Add user</button>
@@ -253,27 +254,26 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="editModalBody" >
-                <div class="mb-3" style="color: black;>
+                <div class="mb-3" style="color: black;">
                     <label for="editUsername" class="form-label">Login:</label>
                     <input type="text" class="form-control" id="editUsername">
                 </div>
             
-                <div class="mb-3"style="color: black;>
-                    <label for="editPassword" class="form-label">Password:</label>
-                    <input type="password" class="form-control" id="editPassword">
-                </div>
-            
-                <div class="mb-3"style="color: black;>
+                <div class="mb-3"style="color: black;">
                     <label for="editGroup" class="form-label">Group:</label>
                     <input type="text" class="form-control" id="editGroup">
                 </div>
             
-                <div class="mb-3"style="color: black;>
+                <div class="mb-3"style="color: black;">
                     <label for="editBalance" class="form-label">Balance:</label>
                     <input type="number" class="form-control" id="editBalance">
                 </div>
+
+                <div class="mb-3"style="color: black;">
+                    <label for="editPassword" class="form-label">New Password:</label>
+                    <input type="password" class="form-control" id="editPassword">
+                </div>
             </div>
-            
             
             <div class="modal-footer">
                 <button type="button" class="btn btn-orange add-new-btn-edit" onclick="saveChanges()">Save</button>
@@ -315,16 +315,6 @@
                     <label for="newTeamB" class="form-label">Team B:</label>
                     <input type="text" class="form-control" id="newTeamB">
                 </div>
-
-                <div class="mb-3" style="color: black;">
-                    <label for="newResultA" class="form-label">Result Team A:</label>
-                    <input type="number" class="form-control" id="newResultA">
-                </div>
-
-                <div class="mb-3" style="color: black;">
-                    <label for="newResultB" class="form-label">Result Team B:</label>
-                    <input type="number" class="form-control" id="newResultB">
-                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-orange add-new-btn-edit" onclick="saveNewMatch()">Add</button>
@@ -345,12 +335,13 @@
             <div class="modal-body" id="endMatchModalBody">
                 <p id="matchTeams"></p>
                 <p id="matchResult"></p>
-                <label for="endResultA" style="color: black; class="form-label">Points for Team A:</label>
-                <input type="number" class="form-control" id="endResultA" readonly>
-                <label for="endResultB" style="color: black; class="form-label">Points for Team B:</label>
-                <input type="number" class="form-control" id="endResultB" readonly>
+                <label for="endResultA" style="color: black" class="form-label">Points for first team:</label>
+                <input type="number" class="form-control" id="endResultA">
+                <label for="endResultB" style="color: black" class="form-label">Points for second team:</label>
+                <input type="number" class="form-control" id="endResultB">
               </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-orange add-new-btn-edit" id="endMatchButton" onclick="endMatchUpdate()">End Match</button>
                 <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -361,49 +352,54 @@
     
 
     <script>
-         function endMatch(match) {
+
+        document.addEventListener("DOMContentLoaded", function() {
+            fillAllUsers();
+            fillAllMatches();
+        });
+
+        function endMatchUpdate() {
+            const matchId = document.getElementById("endMatchButton").getAttribute("data-match-id");
+            if (matchId === null) {
+                console.error('Error: Element with id "matchUpdateId" not found.');
+                return;
+            }
+            console.log(matchId);
+            const country_home_score = document.getElementById("endResultA").value;
+            const country_guest_score = document.getElementById("endResultB").value;
+            const apiUrl = `http://localhost:8080/updatematches/${matchId}`;
+            const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+            fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': userToken
+                },
+                // Тело запроса: JSON-представление объекта match
+                body: JSON.stringify({country_home_score, country_guest_score}),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Match updated successfully:', data);
+            })
+            .catch(error => {
+                console.error('Error updating match:', error);
+            });
+        }
+
+
+
+        function endMatch(matchId) {
         // Open a modal for ending the match
         const endMatchModal = new bootstrap.Modal(document.getElementById("endMatchModal"));
         endMatchModal.show();
-
-        // Get the match data (team names) and set it in the modal
-        document.getElementById("matchTeams").textContent = `${match.teamA} vs ${match.teamB}`;
-        currentMatch = match;
-    }
-
-    function confirmEndMatch() {
-        const resultTeamAInput = document.getElementById("endResultA");
-        const resultTeamBInput = document.getElementById("endResultB");
-
-        const resultTeamA = resultTeamAInput.value;
-        const resultTeamB = resultTeamBInput.value;
-
-       // Set the match data in the modal
-        document.getElementById("matchResult").textContent = `${resultTeamA}:${resultTeamB}`;
-
-        // Calculate the match score and set it in the modal
-        const outcome = calculateMatchOutcome(resultTeamA, resultTeamB);
-        document.getElementById("matchOutcome").textContent = outcome;
-    }
-
-    function calculateMatchOutcome(resultTeamA, resultTeamB) {
-        // Here you can add logic to calculate the match result (e.g. "Win" or "Lose")
-        // based on the points obtained for teams A and B.
-        // Return the appropriate value (e.g. "Win" or "Lose").
-
-        if (resultTeamA > resultTeamB) {
-            return "Win";
-        } else if (resultTeamA < resultTeamB) {
-            return "Lose";
-        } else {
-            return "Draw";
+        document.getElementById("endMatchButton").setAttribute("data-match-id", matchId);
         }
-    }
-
-    function finishMatch(result) {
-        currentMatchResult = result;
-        document.getElementById("matchOutcome").textContent = result; // "Win" or "Lose"
-    }
 
     function addMatch() {
         // Open the modal for adding a match
@@ -415,48 +411,48 @@
         const newDateInput = document.getElementById("newDate");
         const newTeamAInput = document.getElementById("newTeamA");
         const newTeamBInput = document.getElementById("newTeamB");
-        const newResultAInput = document.getElementById("newResultA");
-        const newResultBInput = document.getElementById("newResultB");
 
-        const newDate = newDateInput.value;
-        const newTeamA = newTeamAInput.value;
-        const newTeamB = newTeamBInput.value;
-        const newResultA = newResultAInput.value;
-        const newResultB = newResultBInput.value;
+        const date = newDateInput.value;
+        const country_home = newTeamAInput.value;
+        const country_guest = newTeamBInput.value;
 
-        if (newDate && newTeamA && newTeamB && newResultA !== undefined && newResultB !== undefined) {
-            // Add a new match to the list
-            const betList = document.getElementById("betList");
-            const card = document.createElement("li");
-            card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+        const addMatchModal = new bootstrap.Modal(document.getElementById("addMatchModal"));
+        addMatchModal.hide();
 
-            const cardContent = document.createElement("div");
-            cardContent.textContent = `Date: ${newDate}, Teams: ${newTeamA} vs ${newTeamB}, Result: ${newResultA}:${newResultB}`;
+        // Assuming you have the user token stored in a cookie
+        const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
 
-            const deleteButton = document.createElement("button");
-            deleteButton.classList.add("btn", "btn-danger");
-            deleteButton.textContent = "Delete";
-            deleteButton.onclick = () => deleteMatch(newDate); // Call the delete function
+        // The data you want to send in the POST request
+        const matchData = {
+            date: date,
+            country_home: country_home,
+            country_guest: country_guest
+        };
 
-            const endButton = document.createElement("button");
-            endButton.classList.add("btn", "btn-orange");
-            endButton.textContent = "End";
-            endButton.onclick = () => endMatch({ date: newDate, teamA: newTeamA, teamB: newTeamB, resultTeamA: newResultA, resultTeamB: newResultB }); // Call the termination function
-
-            card.appendChild(cardContent);
-            card.appendChild(endButton);
-            card.appendChild(deleteButton);
-
-            betList.appendChild(card);
-
-            // Close the modal after adding a match
-            const addMatchModal = new bootstrap.Modal(document.getElementById("addMatchModal"));
-            addMatchModal.hide();
-        } else {
-            alert("Please fill in all fields.");
-        }
+        fetch("http://localhost:8080/addmatch", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': userToken,
+            },
+            body: JSON.stringify(matchData),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Handle the success response
+            console.log('Match added successfully:', data);
+            // You can perform additional actions here if needed
+        })
+        .catch(error => {
+            // Handle errors
+            console.error('Error adding match:', error);
+        });
     }
-
 
 
     function editMatch(match) {
@@ -470,38 +466,56 @@
         }
     }
 
-    function deleteMatch(match) {
+    async function deleteMatch(matchID) {
         // Confirm that the user really wants to delete the match
-        const confirmDelete = confirm(`Are you sure you want to delete the match: ${match}?`);
+        const confirmDelete = confirm(`Are you sure you want to delete the match with ID: ${matchID}?`);
 
         if (confirmDelete) {
-            // Call the function responsible for removing the match
-            console.log(`Deleting match: ${match}`);
-           // Here add code to send an AJAX request to the server or other appropriate action
-        }
-    }
+            try {
+            // Get the user token from cookies (assuming you have stored it there)
+            const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
 
-    function editUser(username) {
-       
-        if (newPassword !== null) {
-            openEditModal(username, newPassword);
+            // Fetch to delete the match
+            const response = await fetch(`http://localhost:8080/matches/${matchID}`, {
+                method: 'DELETE',
+                headers: {
+                'Content-Type': 'application/json',
+                'Authorization': userToken,
+                },
+            });
+
+            if (!response.ok) {
+                console.error('Failed to delete the match:', response.statusText);
+                return;
+            }
+
+            // Here you can handle the success, e.g., remove the match from the UI
+            console.log(`Match with ID ${matchID} deleted successfully`);
+
+            } catch (error) {
+            console.error('Error:', error);
+            }
         }
+        }
+
+
+    function editUser(login, rank, balance) { 
+        openEditModal(login, rank, balance);
     }
 
     function addNewUser() {
         openAddModal();
     }
 
-    function openEditModal(username, password, group, balance) {
+    function openEditModal(login, rank, balance) {
         const modalBody = document.getElementById("editModalBody");
         const usernameInput = document.getElementById("editUsername");
         const passwordInput = document.getElementById("editPassword");
         const groupInput = document.getElementById("editGroup");
         const balanceInput = document.getElementById("editBalance");
 
-        usernameInput.value = username;
-        passwordInput.value = password;
-        groupInput.value = group;
+        usernameInput.value = login;
+        groupInput.value = rank;
         balanceInput.value = balance;
 
         const editModal = new bootstrap.Modal(document.getElementById("editModal"));
@@ -512,34 +526,54 @@
         const addModal = new bootstrap.Modal(document.getElementById("addModal"));
         const newUsernameInput = document.getElementById("newUsername");
         const newPasswordInput = document.getElementById("newPassword");
-        const confirmPasswordInput = document.getElementById("confirmPassword");
+        const newBalanceInput = document.getElementById("newBalance");
+        const newGroupInput = document.getElementById("newGroup");
 
         newUsernameInput.value = "";
         newPasswordInput.value = "";
-        confirmPasswordInput.value = "";
+        newBalanceInput.value = 0;
+        newGroupInput.value = "";
 
         addModal.show();
     }
 
-    function saveNewUser() {
+    async function saveNewUser() {
         const newUsernameInput = document.getElementById("newUsername");
         const newPasswordInput = document.getElementById("newPassword");
-        const confirmPasswordInput = document.getElementById("confirmPassword");
+        const newBalanceInput = document.getElementById("newBalance");
+        const newGroupInput = document.getElementById("newGroup");
 
-        const newUsername = newUsernameInput.value;
-        const newPassword = newPasswordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
+        const login = newUsernameInput.value;
+        const password = newPasswordInput.value;
+        const money = newBalanceInput.value;
+        const rank = newGroupInput.value;
 
-        if (newPassword === confirmPassword) {
-            // Implement add new user functionality
-            console.log(`Adding new user: ${newUsername}, ${newPassword}`);
-           // Add code here for adding a new user, e.g. by sending an AJAX request to the server
+        const user = {login, password, money, rank}
+
+            try {
+                const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+                const response = await fetch("http://localhost:8081/users/adduser", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': userToken,
+                },
+                body: JSON.stringify(user),
+                });
+
+                if (!response.ok) {
+                console.error('Failed to add user:', response.statusText);
+                return;
+                }
+
+                const addedUser = await response.json();
+                console.log('User added successfully:', addedUser);
+            } catch (error) {
+                console.error('Error:', error);
+            }
 
             const addModal = new bootstrap.Modal(document.getElementById("addModal"));
            addModal.hide();
-        } else {
-            alert("The passwords do not match. Try again.");
-        }
     }
 
     function saveChanges() {
@@ -553,22 +587,76 @@
         const editedGroup = groupInput.value;
         const editedBalance = balanceInput.value;
 
-        // Implement a function for saving changes, e.g. by sending an AJAX request to the server
-        console.log(`Saving changes for user ${editedUsername}: Password - ${editedPassword}, Group - ${editedGroup}, Balance - ${editedBalance}`);
+        // Get the user token from cookies (assuming you have stored it there)
+        const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+
+        // Prepare the data to be sent in the request body
+        const requestBody = {
+            password: editedPassword,
+            rank: editedGroup,
+            money: parseInt(editedBalance),  // Assuming balance is a number
+        };
+
+        // Send a fetch request to update the user
+        fetch(`http://localhost:8081/users/updateuser/${editedUsername}`, {
+            method: 'PUT',
+            headers: {
+            'Content-Type': 'application/json',
+            'Authorization': userToken,
+            },
+            body: JSON.stringify(requestBody),
+        })
+        .then(response => {
+            if (!response.ok) {
+            throw new Error(`Failed to update user: ${response.statusText}`);
+            }
+            console.log(`User updated successfully: ${editedUsername}`);
+            // Add additional actions if needed
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Handle the error as needed
+        });
 
         // Close the modal after saving changes
         const editModal = new bootstrap.Modal(document.getElementById("editModal"));
         editModal.hide();
     }
 
-        function confirmDelete(username) {
+
+    function confirmDelete(username) {
         const confirmDelete = confirm(`Are you sure you want to delete the user? ${username}?`);
+        
         if (confirmDelete) {
             // Implement delete functionality
             console.log(`Deleting user: ${username}`);
-            // Add code here to remove the user, e.g. by sending an AJAX request to the server
+            
+            // Get the user token from cookies (assuming you have stored it there)
+            const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+
+            // Send a fetch request to delete the user
+            fetch(`http://localhost:8081/users/deleteuser/${username}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': userToken,
+            },
+            })
+            .then(response => {
+            if (!response.ok) {
+                throw new Error(`Failed to delete user: ${response.statusText}`);
+            }
+            console.log(`User deleted successfully: ${username}`);
+            // Add additional actions if needed
+            })
+            .catch(error => {
+            console.error('Error:', error);
+            // Handle the error as needed
+            });
         }
-    }
+        }
+
+        
         function showAddUserForm() {
             // Clear the form
             clearForm();
@@ -621,83 +709,110 @@
         // ...
 
         // Sample data for bet history
-        const betHistory = [
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            { match: "Match 2", amount: 25, result: "Loss" },
-            { match: "Match 1", amount: 50, result: "Win" },
-            // Add more bet history entries as needed
-        ];
+        async function fillAllMatches() {
+            try {
+                // Get the user token from cookies (assuming you have stored it there)
+                const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
 
-        const betList = document.getElementById("betList");
+                // Fetch matches from the server
+                const response = await fetch("http://localhost:8080/matches", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                });
 
-    betHistory.forEach(bet => {
-        const card = document.createElement("li");
-        card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+                if (!response.ok) {
+                console.error('Failed to fetch all matches:', response.statusText);
+                return;
+                }
 
-        const cardContent = document.createElement("div");
-        cardContent.textContent = `${bet.match} - Bet Amount: ${bet.amount}, Result: ${bet.result}`;
+                const matchList = await response.json();
+                const betList = document.getElementById("betList");
 
-        const deleteButton = document.createElement("button");
-        deleteButton.classList.add("btn", "btn-danger");
-        deleteButton.textContent = "Delete";
-        deleteButton.onclick = () => deleteMatch(bet.match); // Call the delete function
+                matchList.forEach(match => {
+                const card = document.createElement("li");
+                card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
 
-        const endButton = document.createElement("button");
-        endButton.classList.add("btn", "btn-orange");
-        endButton.textContent = "End";
-        endButton.onclick = () => endMatch(bet.match); // Call the termination function
+                const cardContent = document.createElement("div");
+                if (match.country_guest_score != undefined && match.country_home_score != undefined) {
+                    cardContent.textContent = `${match.country_home} | Score: ${match.country_home_score} vs ${match.country_guest} | Score: ${match.country_guest_score} - Match ID: ${match._id}`;
+                }
+                else {
+                    cardContent.textContent = `${match.country_home} vs ${match.country_guest} - Match ID: ${match._id}`;
+                }
 
-        card.appendChild(cardContent);
-        card.appendChild(endButton);
-        card.appendChild(deleteButton);
+                const deleteButton = document.createElement("button");
+                deleteButton.classList.add("btn", "btn-danger");
+                deleteButton.textContent = "Delete";
+                deleteButton.onclick = () => deleteMatch(match._id); // Call the delete function
 
-        betList.appendChild(card);
-    });
+                if (match.is_end != true) {
+                    const endButton = document.createElement("button");
+                    endButton.classList.add("btn", "btn-orange");
+                    endButton.textContent = "End";
+                    endButton.onclick = () => endMatch(match._id); // Call the termination function
+                    card.appendChild(endButton);
+                }
 
+                card.appendChild(cardContent);
+                card.appendChild(deleteButton);
 
-        // Sample data for user list
-        const userList = [
-            { username: "User1", email: "user1@example.com", role: "Admin" },
-            { username: "User2", email: "user2@example.com", role: "User" },
-            { username: "User3", email: "user3@example.com", role: "Moderator" },
-            { username: "User1", email: "user1@example.com", role: "Admin" },
-            { username: "User2", email: "user2@example.com", role: "User" },
-            { username: "User3", email: "user3@example.com", role: "Moderator" },
-
-            // Add more user entries as needed
-        ];
-
-        const userListContainer = document.getElementById("userList");
-
-        userList.forEach(user => {
-            const card = document.createElement("li");
-            card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
-
-            const cardContent = document.createElement("div");
-            cardContent.textContent = `Username: ${user.username}, Email: ${user.email}, Role: ${user.role}`;
-
-            const deleteButton = document.createElement("button");
-            deleteButton.classList.add("btn", "btn-danger");
-            deleteButton.textContent = "Delete";
-            deleteButton.onclick = () => confirmDelete(user.username); // Call the delete function
+                betList.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
 
 
-            const endButton = document.createElement("button");
-            endButton.classList.add("btn", "btn-orange");
-            endButton.textContent = "Edit";
-            endButton.onclick = () => editUser(user.username); // Call the edit function
+        async function fillAllUsers() {
+            try {
+                const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
+                const response = await fetch("http://localhost:8081/users/getallusers", {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': userToken,
+                    },
+                });
 
+                if (!response.ok) {
+                    console.error('Failed to fetch all users:', response.statusText);
+                    return;
+                }
 
-            card.appendChild(cardContent);
-            card.appendChild(endButton);
-            card.appendChild(deleteButton);
+                const userList = await response.json();
+                const userListContainer = document.getElementById("userList");
 
-            userListContainer.appendChild(card);
-        });
+                userList.forEach(user => {
+                    const card = document.createElement("li");
+                    card.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+
+                    const cardContent = document.createElement("div");
+                    cardContent.textContent = `Username: ${user.login}, Group: ${user.rank}, Balance: ${user.money}`;
+
+                    const deleteButton = document.createElement("button");
+                    deleteButton.classList.add("btn", "btn-danger");
+                    deleteButton.textContent = "Delete";
+                    deleteButton.onclick = () => confirmDelete(user.login); // Call the delete function
+
+                    const editButton = document.createElement("button");
+                    editButton.classList.add("btn", "btn-orange");
+                    editButton.textContent = "Edit";
+                    editButton.onclick = () => editUser(user.login, user.rank, user.money); // Call the edit function
+
+                    card.appendChild(cardContent);
+                    card.appendChild(editButton);
+                    card.appendChild(deleteButton);
+
+                    userListContainer.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
     </script>
 </body>
 
