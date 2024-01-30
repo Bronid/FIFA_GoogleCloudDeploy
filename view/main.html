@@ -318,7 +318,7 @@ function getJSON() {
 
         // Фильтрация матчей по наличию и значению поля is_end
         var filteredOldMatches = json.filter(match => match.is_end === true);
-        var filteredMatches = json.filter(match => match.is_end === undefined);
+        var filteredMatches = json.filter(match => match.is_end === undefined || match.is_end === false);
 
         // Здесь можно использовать отфильтрованный массив
         populateOldMatchList(filteredOldMatches);
