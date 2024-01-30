@@ -392,6 +392,8 @@
 
         function endMatchUpdate() {
             const matchId = document.getElementById("endMatchButton").getAttribute("data-match-id");
+            const country_home = document.getElementById("endMatchButton").getAttribute("data-match-home");
+            const country_guest = document.getElementById("endMatchButton").getAttribute("data-match-guest");
             if (matchId === null) {
                 console.error('Error: Element with id "matchUpdateId" not found.');
                 return;
@@ -408,7 +410,7 @@
                     'Authorization': userToken
                 },
                 // Тело запроса: JSON-представление объекта match
-                body: JSON.stringify({country_home_score, country_guest_score}),
+                body: JSON.stringify({country_home, country_guest, country_home_score, country_guest_score}),
             })
             .then(response => {
                 if (!response.ok) {
@@ -426,11 +428,13 @@
 
 
 
-        function endMatch(matchId) {
+        function endMatch(matchId, country_home, country_guest) {
         // Open a modal for ending the match
         const endMatchModal = new bootstrap.Modal(document.getElementById("endMatchModal"));
         endMatchModal.show();
         document.getElementById("endMatchButton").setAttribute("data-match-id", matchId);
+        document.getElementById("endMatchButton").setAttribute("data-match-home", country_home);
+        document.getElementById("endMatchButton").setAttribute("data-match-guest", country_guest);
         }
 
     function addMatch() {
@@ -783,7 +787,7 @@
                     const endButton = document.createElement("button");
                     endButton.classList.add("btn", "btn-orange");
                     endButton.textContent = "End";
-                    endButton.onclick = () => endMatch(match._id); // Call the termination function
+                    endButton.onclick = () => endMatch(match._id, match.country_home, match.country_guest); // Call the termination function
                     card.appendChild(endButton);
                 }
 
