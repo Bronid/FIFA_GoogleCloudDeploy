@@ -5,11 +5,10 @@ Welcome to the FIFA Candy Betting App! This application allows users to bet on F
 ## Table of Contents
 
 - [Installation](#installation)
+- [Technologies](#technologies)
 - [Usage](#usage)
 - [API Endpoints](#api-endpoints)
 - [Swagger Documentation](#swagger-documentation)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Installation
 
@@ -17,11 +16,29 @@ Welcome to the FIFA Candy Betting App! This application allows users to bet on F
 
    ```bash
    git clone https://github.com/Bronid/FIFA_GoogleCloudDeploy.git
+   ```
+
+2. Install [Docker](https://docs.docker.com/get-docker/) and run it
+
+3. Run this command in project directory:
+  ```bash
+   docker compose up --build
+   ```
+
+4. Go to the **localhost:80** in your browser
+   
+5. Done!
+
+## Technologies
+- Docker
+- MongoDB
+- Node Js
 
 ## Usage
 - Register an account and log in.
 - View upcoming FIFA matches and place bets.
 - Track your betting history and account balance.
+Also you can find this app deployed on Google Cloud [here](https://fifa-project-frontend-gur6ebemfq-ew.a.run.app/)
 
 ## API Endpoints
 - POST /users/register: Register a new user.
@@ -39,9 +56,5 @@ Welcome to the FIFA Candy Betting App! This application allows users to bet on F
 
 ## Swagger Documentation
 Explore the API using Swagger documentation available at /api-docs when the app is running.
-
-## Contributing
-Contributions are welcome! Feel free to open issues and pull requests.
-
-## License
-This project is licensed under the MIT License.
+- localhost:8080/api-docs - Match API
+- localhost:8081/api-docs - User API

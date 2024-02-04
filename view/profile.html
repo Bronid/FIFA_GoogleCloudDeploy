@@ -15,14 +15,13 @@
     <style>
 
 .btn-container {
-    text-align: center; /* Центрирует дочерние элементы горизонтально */
+    text-align: center;
 }
 
 .btn-sm {
     width: 50%;
-    display: inline-block; /* Сделать кнопку строчно-блочным элементом */
-    /* Ваши текущие стили для отступов */
-    margin: 20px; /* Пример, замените на ваши реальные отступы */
+    display: inline-block;
+    margin: 20px;
 }
 
 #big {
@@ -43,9 +42,9 @@
 }
 
 .btn-orange:hover {
-    background-color: #ff670f; /* Измененный оттенок оранжевого при наведении */
+    background-color: #ff670f;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transform: scale(1.05); /* Увеличение размера при наведении */
+    transform: scale(1.05);
 }
 
 .btn-danger {
@@ -140,7 +139,6 @@
 </head>
 
 <body>
-    <!-- Navbar -->
     <nav>
         <a class="logo" href="main.html">Candy Betting</a>
         <div class="profile">
@@ -157,16 +155,12 @@
         </div>
     </nav>
 
-    <!-- Profile and Bet Form using Bootstrap Grid -->
     <div class="container" style="margin-top: 100px;">
         <div class="row">
-            <!-- User Info Container -->
             <div class="col-md-6">
-                <!-- Profile Form -->
                 <h2 class="losung">User Information</h2>
                 <div class="profile-form">
                     <form id="profileForm">
-                        <!-- Display user information here -->
                         <label for="login" class="bold">Login:</label>
                         <input type="text" id="login" name="login" readonly value="">
 
@@ -188,14 +182,12 @@
                 </div>
             </div>
 
-            <!-- Bet History Container -->
             <div class="col-md-6">
                 <h2 class="losung">Bet History</h2>
                 <div class="list-history">
-                    <div class="card bg-custom"> <!-- Add the bg-custom class -->
+                    <div class="card bg-custom">
                         <div class="card-body">
                             <ul id="betList" class="list-group list-group-flush">
-                                <!-- Each bet as a list item within the card -->
                             </ul>
                         </div>
                     </div>
@@ -218,7 +210,7 @@
             try {
                 const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
                 const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
-                const restAddress = "https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/updateuser/" + userLogin;
+                const restAddress = "http://localhost:8081/users/updateuser/" + userLogin;
 
                 const updateData = {
                     money: document.getElementById("balance_user").value,
@@ -238,27 +230,20 @@
                 if (!response.ok) {
                     const errorMessage = await response.json();
                     console.error('Failed to update user info:', errorMessage.error);
-                    // Дополнительная обработка ошибки, если необходимо
                     return;
                 }
 
-                // Успешное обновление информации о пользователе
                 console.log('User info updated successfully');
-                // Дополнительные действия, которые вы хотите выполнить после успешного обновления
 
             } catch (error) {
                 console.error('Error:', error);
             }
         }
 
-
-        // Fetch and display user information and bet history using AJAX or fetch API
-        // ...
-
         async function deleteProfile() {
             try {
                 const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
-                const restAddress = "https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/deleteuser/" + userLogin;
+                const restAddress = "http://localhost:8081/users/deleteuser/" + userLogin;
                 const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
 
                 const response = await fetch(restAddress, {
@@ -272,13 +257,9 @@
                 if (!response.ok) {
                     const errorMessage = await response.json();
                     console.error('Failed to delete profile:', errorMessage.error);
-                    // Дополнительная обработка ошибки, если необходимо
                     return;
                 }
-
-                // Успешное удаление профиля
                 console.log('Profile deleted successfully');
-                // Дополнительные действия, которые вы хотите выполнить после удаления профиля
 
             } catch (error) {
                 console.error('Error:', error);
@@ -292,7 +273,7 @@
             try {
                 const userLogin = document.cookie.split('; ').find(row => row.startsWith('userLogin=')).split('=')[1];
                 const userToken = document.cookie.split('; ').find(row => row.startsWith('userToken=')).split('=')[1];
-                const userResponse = await fetch("https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/getuser/" + userLogin, {
+                const userResponse = await fetch("http://localhost:8081/users/getuser/" + userLogin, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -307,14 +288,12 @@
 
                 const userData = await userResponse.json();
 
-                // Заполнение полей в форме профиля
                 document.getElementById("login").value = userData.login;
                 document.getElementById("group").value = userData.rank;
                 document.getElementById("balance_user").value = userData.money;
                 document.getElementById("balance").textContent = `${userData.money}`;
                 document.getElementById("username").textContent = `Hello, ${userData.login}!`;
 
-                // Заполнение списка истории ставок
                 userData.matches.forEach(bet => {
                     console.log("test");
                     const card = document.createElement("li");
@@ -343,7 +322,6 @@
             }
         }
         function logout() {
-        // Clear all cookies
         const cookies = document.cookie.split("; ");
 
         for (let i = 0; i < cookies.length; i++) {
@@ -353,14 +331,11 @@
             document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
         }
 
-        // Redirect to the login page
         window.location.href = 'login.html';
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-        // Check if the user has previously accepted cookies
         if (!getCookie('cookiesAccepted')) {
-            // If not, show banner
             showCookieBanner();
             }
         });
@@ -373,10 +348,7 @@
         }
 
         function acceptCookies() {
-        // Set an acceptance cookie
             document.cookie = 'cookiesAccepted=true; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/; SameSite=Strict';
-
-        // Hide banner
             var cookieBanner = document.getElementById('cookieBanner');
             if (cookieBanner) {
             cookieBanner.style.display = 'none';
@@ -399,16 +371,13 @@
         document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
         }
 
-        // Optional: Redirect to login page after clearing cookies
         window.location.href = 'login.html';
         }
 
         document.cookie = "exampleCookie=exampleValue; expires=Fri, 31 Dec 9999 23:59:59 GMT; path=/";
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Check if the user has previously accepted cookies
             if (!getCookie('cookiesAccepted')) {
-                // If not, show banner
                 showCookieBanner();
             }
         });

@@ -25,10 +25,7 @@ app.use((req, res, next) => {
   next();
 });
 
-let mongoLogin = "cloudp731";
-let mongoPassword = "y9XhDjrbE9YMTvHr";
-
-let mongoURL = `mongodb+srv://${mongoLogin}:${mongoPassword}@fifa.mfucycd.mongodb.net/?retryWrites=true&w=majority`;
+let mongoURL = `mongodb://mongo:27017`;
 
 let mongoc = new MongoClient(mongoURL);
 

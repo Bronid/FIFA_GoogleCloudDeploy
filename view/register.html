@@ -285,7 +285,7 @@
                 return;
             }
 
-            const response = await fetch('https://fifa-project-backend-user-gur6ebemfq-ew.a.run.app/users/register', {
+            const response = await fetch('http://localhost:8081/users/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -298,11 +298,9 @@
             if (response.ok) {
                 document.getElementById('result').innerHTML = 'Registration successful. You are now logged in.';
 
-                // Сохраняем токен в куки
                 document.cookie = `userLogin=${result.login}; expires=${new Date(Date.now() + 86400000).toUTCString()}; path=/`;
                 document.cookie = `userToken=${result.token}; expires=${new Date(Date.now() + 86400000).toUTCString()}; path=/`;
 
-                // Редирект на другую страницу, например, на главную
                 redirectToMainPage(result.token);
             } else {
                 document.getElementById('result').innerHTML = `Registration failed. ${result.message}`;
@@ -311,7 +309,6 @@
         }
 
         function redirectToMainPage(token) {
-            // Перенаправление на основную страницу с передачей токена
             window.location.href = `main.html`;
         }
     </script>
