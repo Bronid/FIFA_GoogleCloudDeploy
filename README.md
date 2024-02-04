@@ -1,5 +1,7 @@
 # FIFA Candy Betting App
 
+![gif](https://imgur.com/inMemHF)
+
 Welcome to the FIFA Candy Betting App! This application allows users to bet on FIFA matches and track their bets.
 
 ## Table of Contents
