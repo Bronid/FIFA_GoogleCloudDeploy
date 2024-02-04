@@ -2,7 +2,7 @@
 
 Welcome to the FIFA Candy Betting App! This application allows users to bet on FIFA matches and track their bets.
 
-![Imgur](https://i.imgur.com/inMemHF.gif)
+![Comp 1](https://github.com/Bronid/FIFA_GoogleCloudDeploy/assets/61603558/537dead4-f97e-4ec5-8d4a-f2548c4563b9)
 
 ## Table of Contents
 
